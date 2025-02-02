@@ -12,7 +12,7 @@ public class PaymentIntentController {
 
 
 	@PostMapping("/create-payment-intent")
-	public PaymentIntentResponse createPaymentIntent(@RequestBody PaymentIntentRequest paymentIntentRequest)
+	public String createPaymentIntent(@RequestBody PaymentIntentRequest paymentIntentRequest)
 			throws StripeException {
 		PaymentIntentCreateParams params =
 				PaymentIntentCreateParams.builder()
@@ -29,10 +29,7 @@ public class PaymentIntentController {
 						)
 						.build();
 
-		PaymentIntent intent =
-				PaymentIntent.create(params);
+		return PaymentIntent.create(params).toJson();
 
-		return new PaymentIntentResponse(intent.getId(),
-				intent.getClientSecret());
 	}
 }
