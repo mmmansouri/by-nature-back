@@ -3,20 +3,25 @@ package com.bynature.domain.model;
 import java.util.UUID;
 
 public class Customer {
-    private UUID id;
-    private String firstName;
-    private String lastName;
-    private Email email;
-    private PhoneNumber phoneNumber;
-    private Address address;
+    private final UUID id;
+    private final String firstName;
+    private final String lastName;
+    private final Email email;
+    private final PhoneNumber phoneNumber;
 
-    public Customer(UUID id, String firstName, String lastName, Email email, PhoneNumber phoneNumber, Address address) {
+    private String streetNumber;
+    private String street;
+    private String city;
+    private String region;
+    private String postalCode;
+    private String country;
+
+    public Customer(UUID id, String firstName, String lastName, Email email, PhoneNumber phoneNumber) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.address = address;
     }
 
     public UUID getId() {
@@ -39,7 +44,27 @@ public class Customer {
         return phoneNumber;
     }
 
-    public Address getAddress() {
-        return address;
+    public String getStreetNumber() {
+        return streetNumber;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public String getCountry() {
+        return country;
     }
 }

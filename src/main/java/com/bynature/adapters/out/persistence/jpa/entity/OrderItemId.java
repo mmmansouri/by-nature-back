@@ -1,4 +1,4 @@
-package com.bynature.adapters.out.persistence.entity;
+package com.bynature.adapters.out.persistence.jpa.entity;
 
 import jakarta.persistence.Embeddable;
 

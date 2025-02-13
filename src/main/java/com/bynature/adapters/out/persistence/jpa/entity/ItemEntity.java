@@ -1,5 +1,6 @@
-package com.bynature.adapters.out.persistence.entity;
+package com.bynature.adapters.out.persistence.jpa.entity;
 
+import com.bynature.domain.model.Item;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,11 +18,13 @@ public class ItemEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String description;
 
     @Column(nullable = false)
     private double price;
 
+    @Column(nullable = false)
     private String imageUrl;
 
     // Constructors
@@ -76,5 +79,9 @@ public class ItemEntity {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Item toDomain() {
+        return new Item(id, name, description, price, imageUrl);
     }
 }

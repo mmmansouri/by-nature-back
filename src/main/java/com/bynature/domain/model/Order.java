@@ -4,12 +4,12 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Order {
-    private UUID id;
-    private UUID customerId;
-    private Map<UUID, Integer> orderItems;
-    private double total;
-    private String status;
-    private ShippingAddress shippingAddress;
+    private final UUID id;
+    private final UUID customerId;
+    private final Map<UUID, Integer> orderItems;
+    private final double total;
+    private final String status;
+    private final ShippingAddress shippingAddress;
 
     public Order(UUID id, UUID customerId, Map<UUID, Integer> orderItems, double total, String status, ShippingAddress shippingAddress) {
         this.id = id;

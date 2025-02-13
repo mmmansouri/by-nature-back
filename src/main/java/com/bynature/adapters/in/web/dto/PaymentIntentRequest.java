@@ -1,4 +1,4 @@
-package com.bynature;
+package com.bynature.adapters.in.web.dto;
 
 
 import jakarta.validation.constraints.Email;

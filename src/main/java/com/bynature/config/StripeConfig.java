@@ -1,4 +1,4 @@
-package com.bynature;
+package com.bynature.config;
 
 import com.stripe.Stripe;
 import jakarta.annotation.PostConstruct;

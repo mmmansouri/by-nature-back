@@ -1,5 +1,6 @@
-package com.bynature;
+package com.bynature.adapters.in.web;
 
+import com.bynature.adapters.in.web.dto.PaymentIntentRequest;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
