@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: mmmansouri
+      changes:
+        - sqlFile:
+            path: db/changelog/V1__initial_schema.sql
+            splitStatements: true
+            stripComments: true

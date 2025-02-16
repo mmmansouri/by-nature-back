@@ -1,9 +1,12 @@
 package com.bynature.adapters.in.web;
 
-import com.bynature.adapters.in.web.dto.OrderRequest;
-import com.bynature.adapters.in.web.dto.OrderResponse;
+import com.bynature.adapters.in.web.dto.request.OrderRequest;
+import com.bynature.adapters.in.web.dto.response.OrderResponse;
+import com.bynature.domain.model.Order;
 import com.bynature.domain.service.OrderService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +26,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<UUID> createOrder(@RequestBody OrderRequest orderRequest) {
 
         // Delegate to the use-case to create the order.
         UUID createdOrderUUID = orderService.createOrder(orderRequest.toDomain());
@@ -31,6 +34,20 @@ public class OrderController {
         // Return a 201 Created response with the location of the new order.
         return ResponseEntity
                 .created(URI.create("/orders/" + createdOrderUUID))
-                .body(new OrderResponse(createdOrderUUID));
+                .body(createdOrderUUID);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable("id") UUID uuid) {
+
+        Order order = orderService.getOrder(uuid);
+
+        if (order == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity
+                .ok()
+                .body(OrderResponse.fromDomain(order));
     }
 }

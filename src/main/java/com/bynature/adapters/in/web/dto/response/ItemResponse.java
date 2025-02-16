@@ -1,15 +1,17 @@
-package com.bynature.domain.model;
+package com.bynature.adapters.in.web.dto.response;
+
+import com.bynature.domain.model.Item;
 
 import java.util.UUID;
 
-public class Item {
+public class ItemResponse {
     private final UUID id;
     private final String name;
     private final String description;
     private final double price;
     private final String imageUrl;
 
-    public Item(UUID id, String name, String description, double price, String imageUrl) {
+    public ItemResponse(UUID id, String name, String description, double price, String imageUrl) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,5 +37,9 @@ public class Item {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public static ItemResponse fromDomain(Item item) {
+        return new ItemResponse(item.getId(), item.getName(), item.getDescription(), item.getPrice(), item.getImageUrl());
     }
 }

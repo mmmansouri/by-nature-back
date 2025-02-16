@@ -27,7 +27,7 @@ public class OrderJpaAdapterTest {
     public void whenSavingOrder_thenItCanBeRetrieved() {
 
         Order order = new Order(UUID.randomUUID(), UUID.randomUUID(),Map.of(UUID.randomUUID(), 2) ,150.0, "NEW",
-                new ShippingAddress("Mohamed", "Bouhlel", new PhoneNumber("+33634164387"),new Email("toto@gmail.com"),"123", "Avenue de la redoute",
+                new ShippingAddress("Mohamed", "Mohamed", new PhoneNumber("+33634164387"),new Email("toto@gmail.com"),"123", "Avenue de la redoute",
                         "Asnières","Haut de France","92600", "France" ));
 
 

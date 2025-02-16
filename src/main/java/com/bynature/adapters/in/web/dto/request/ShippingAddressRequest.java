@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.dto;
+package com.bynature.adapters.in.web.dto.request;
 
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.PhoneNumber;
