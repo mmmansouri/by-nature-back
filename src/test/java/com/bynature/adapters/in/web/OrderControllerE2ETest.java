@@ -1,5 +1,6 @@
 package com.bynature.adapters.in.web;
 
+import com.bynature.AbstractByNatureTest;
 import com.bynature.adapters.in.web.dto.request.OrderRequest;
 import com.bynature.adapters.in.web.dto.request.ShippingAddressRequest;
 import com.bynature.adapters.in.web.dto.response.OrderResponse;
@@ -19,7 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OrderControllerE2ETest {
+public class OrderControllerE2ETest extends AbstractByNatureTest {
 
     @Autowired
     private TestRestTemplate restTemplate;

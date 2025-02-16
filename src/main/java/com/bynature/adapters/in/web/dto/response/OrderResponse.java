@@ -48,6 +48,9 @@ public class OrderResponse {
     }
 
     public static OrderResponse fromDomain(Order order) {
-        return new OrderResponse(order.getId(), order.getCustomerId(), order.getOrderItems(), order.getTotal(), order.getStatus(), ShippingAddressResponse.fromDomain(order.getShippingAddress()));
+        return new OrderResponse(order.getId(), order.getCustomerId(), order.getOrderItems(), order.getTotal(),
+                order.getStatus(), new ShippingAddressResponse(order.getFirstName(), order.getLastName(),
+                order.getPhoneNumber().number(), order.getEmail().email(), order.getStreetNumber(), order.getStreet(),
+                order.getCity(), order.getRegion(), order.getPostalCode(), order.getCountry()));
     }
 }

@@ -1,7 +1,6 @@
 package com.bynature.adapters.out.persistence.jpa;
 
 import com.bynature.adapters.out.persistence.jpa.entity.OrderEntity;
-import com.bynature.adapters.out.persistence.jpa.entity.ShippingAddressEntity;
 import com.bynature.adapters.out.persistence.jpa.repository.OrderJpaRepository;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.repository.OrderRepository;
@@ -45,34 +44,14 @@ public class OrderRepositoryAdapter implements OrderRepository {
         orderJpaRepository.deleteById(orderId);
     }
 
-    // Example mapping method: adjust as needed to suit your mapping requirements.
     private OrderEntity mapToEntity(Order order) {
-        // Create OrderEntity from Order domain object.
-        // For example, mapping ShippingAddress (assuming OrderEntity has an AddressEntity field).
-        OrderEntity entity = new OrderEntity();
-        entity.setId(order.getId());
-        entity.setCustomerId(order.getCustomerId());
-        entity.setTotal(order.getTotal());
-        entity.setStatus(order.getStatus());
+        //TODO: Map order items
+        //entity.setOrderItems(order.getOrderItems().);
 
-        // Mapping ShippingAddress (you should implement the Address mapping accordingly)
-        if (order.getShippingAddress() != null) {
-            // Assume AddressEntity has a matching constructor or setters.
-            entity.setShippingAddress(new ShippingAddressEntity(
-                    UUID.randomUUID(),
-                    order.getShippingAddress().getFirstName(),
-                    order.getShippingAddress().getLastName(),
-                    order.getShippingAddress().getPhoneNumber().number(),
-                    order.getShippingAddress().getEmail().email(),
-                    order.getShippingAddress().getStreetNumber(),
-                    order.getShippingAddress().getStreet(),
-                    order.getShippingAddress().getCity(),
-                    order.getShippingAddress().getRegion(),
-                    order.getShippingAddress().getPostalCode(),
-                    order.getShippingAddress().getCountry()));
-        }
-        // Map order items if needed.
-        return entity;
+        return new OrderEntity(order.getId(), order.getCustomerId(), order.getTotal(), order.getStatus(),
+                order.getFirstName(), order.getLastName(), order.getPhoneNumber().number(), order.getEmail().email(),
+                order.getStreetNumber(), order.getStreet(), order.getCity(), order.getRegion(), order.getPostalCode(),
+                order.getCountry(), order.getCreatedAt(), order.getUpdatedAt());
     }
 
     private Order mapToDomain(OrderEntity entity) {

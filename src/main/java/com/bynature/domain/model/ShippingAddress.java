@@ -1,5 +1,7 @@
 package com.bynature.domain.model;
 
+import java.time.LocalDateTime;
+
 public class ShippingAddress {
     private final String firstName;
     private final String lastName;
@@ -11,8 +13,10 @@ public class ShippingAddress {
     private final String region;
     private final String postalCode;
     private final String country;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
-    public ShippingAddress(String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country) {
+    public ShippingAddress(String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
@@ -23,6 +27,8 @@ public class ShippingAddress {
         this.region = region;
         this.postalCode = postalCode;
         this.country = country;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public String getFirstName() {
@@ -63,5 +69,13 @@ public class ShippingAddress {
 
     public String getCountry() {
         return country;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

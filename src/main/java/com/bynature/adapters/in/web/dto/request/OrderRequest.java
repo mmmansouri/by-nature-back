@@ -1,7 +1,10 @@
 package com.bynature.adapters.in.web.dto.request;
 
+import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Order;
+import com.bynature.domain.model.PhoneNumber;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,7 +64,17 @@ public class OrderRequest {
                 this.orderItems,
                 this.total,
                 this.status,
-                this.shippingAddress.toDomain()
-        );
+                this.shippingAddress.getFirstName(),
+                this.shippingAddress.getLastName(),
+                new PhoneNumber(this.shippingAddress.getPhoneNumber()),
+                new Email(this.shippingAddress.getEmail()),
+                this.shippingAddress.getStreetNumber(),
+                this.shippingAddress.getStreet(),
+                this.shippingAddress.getCity(),
+                this.shippingAddress.getRegion(),
+                this.shippingAddress.getPostalCode(),
+                this.shippingAddress.getCountry(),
+                LocalDateTime.now(),
+                LocalDateTime.now());
     }
 }

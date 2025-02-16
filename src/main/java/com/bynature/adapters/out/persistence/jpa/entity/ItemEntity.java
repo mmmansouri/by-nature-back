@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -27,16 +28,24 @@ public class ItemEntity {
     @Column(nullable = false)
     private String imageUrl;
 
-    // Constructors
-    public ItemEntity() {
-    }
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
-    public ItemEntity(UUID id, String name, String description, double price, String imageUrl) {
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    public ItemEntity(UUID id, String name, String description, double price, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.imageUrl = imageUrl;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public ItemEntity() {
+
     }
 
     // Getters and setters
@@ -81,7 +90,23 @@ public class ItemEntity {
         this.imageUrl = imageUrl;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public Item toDomain() {
-        return new Item(id, name, description, price, imageUrl);
+        return new Item(id, name, description, price, imageUrl, createdAt, updatedAt);
     }
 }

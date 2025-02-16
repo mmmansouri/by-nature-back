@@ -1,5 +1,6 @@
 package com.bynature.domain.model;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Item {
@@ -8,13 +9,17 @@ public class Item {
     private final String description;
     private final double price;
     private final String imageUrl;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
-    public Item(UUID id, String name, String description, double price, String imageUrl) {
+    public Item(UUID id, String name, String description, double price, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.imageUrl = imageUrl;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public UUID getId() {
@@ -35,5 +40,13 @@ public class Item {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

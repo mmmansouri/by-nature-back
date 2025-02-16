@@ -4,6 +4,8 @@ import com.bynature.domain.model.Email;
 import com.bynature.domain.model.PhoneNumber;
 import com.bynature.domain.model.ShippingAddress;
 
+import java.time.LocalDateTime;
+
 public class ShippingAddressRequest {
     private String firstName;
     private String lastName;
@@ -15,6 +17,8 @@ public class ShippingAddressRequest {
     private String region;
     private String postalCode;
     private String country;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 
    public ShippingAddressRequest(String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country) {
@@ -112,7 +116,7 @@ public class ShippingAddressRequest {
 
     public ShippingAddress toDomain() {
         return new ShippingAddress(firstName, lastName, new PhoneNumber(phoneNumber), new Email(email),
-                streetNumber, street, city, region, postalCode, country);
+                streetNumber, street, city, region, postalCode, country, createdAt, updatedAt);
     }
 
 }

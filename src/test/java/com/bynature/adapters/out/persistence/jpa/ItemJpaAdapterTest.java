@@ -1,5 +1,6 @@
 package com.bynature.adapters.out.persistence.jpa;
 
+import com.bynature.AbstractByNatureTest;
 import com.bynature.domain.model.Item;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {ItemRepositoryAdapter.class})
-public class ItemJpaAdapterTest {
+public class ItemJpaAdapterTest extends AbstractByNatureTest {
 
     @Autowired
     private ItemRepositoryAdapter itemJpaRepository;
@@ -22,7 +24,8 @@ public class ItemJpaAdapterTest {
     @Test
     public void whenSavingItem_thenItCanBeRetrieved() {
         UUID itemId = UUID.randomUUID();
-        Item item = new Item(itemId, "Test Item", "Test Description", 100.0, "http://test.com/image.jpg");
+        Item item = new Item(itemId, "Test Item", "Test Description", 100.0,
+                "http://test.com/image.jpg", LocalDateTime.now(), LocalDateTime.now());
 
         // Save the item entity
         itemJpaRepository.saveItem(item);

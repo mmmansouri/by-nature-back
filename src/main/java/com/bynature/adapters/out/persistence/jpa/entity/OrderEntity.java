@@ -1,15 +1,17 @@
 package com.bynature.adapters.out.persistence.jpa.entity;
 
 
+import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Order;
+import com.bynature.domain.model.PhoneNumber;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,23 +32,66 @@ public class OrderEntity {
     @Column(nullable = false)
     private String status;
 
-    // Assuming ShippingAddress is a value object, map it as an embeddable.
-    @Embedded
-    private ShippingAddressEntity shippingAddress;
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String streetNumber;
+
+    @Column(nullable = false)
+    private String street;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String region;
+
+    @Column(nullable = false)
+    private String postalCode;
+
+    @Column(nullable = false)
+    private String country;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> orderItems = new ArrayList<>();
 
-    // Constructors
-    public OrderEntity() {
-    }
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 
-    public OrderEntity(UUID id, UUID customerId, double total, String status, ShippingAddressEntity shippingAddress) {
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    public OrderEntity(UUID id, UUID customerId, double total, String status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.customerId = customerId;
         this.total = total;
         this.status = status;
-        this.shippingAddress = shippingAddress;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.streetNumber = streetNumber;
+        this.street = street;
+        this.city = city;
+        this.region = region;
+        this.postalCode = postalCode;
+        this.country = country;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public OrderEntity() {
+
     }
 
     // Getters and setters
@@ -83,20 +128,108 @@ public class OrderEntity {
         this.status = status;
     }
 
-    public ShippingAddressEntity getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(ShippingAddressEntity shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
     public List<OrderItemEntity> getOrderItems() {
         return orderItems;
     }
 
     public void setOrderItems(List<OrderItemEntity> orderItems) {
         this.orderItems = orderItems;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getStreetNumber() {
+        return streetNumber;
+    }
+
+    public void setStreetNumber(String streetNumber) {
+        this.streetNumber = streetNumber;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     // Helper to add order items
@@ -119,8 +252,18 @@ public class OrderEntity {
                         .collect(Collectors.toMap(orderItem -> orderItem.getItem().getId(), OrderItemEntity::getQuantity)),
                 this.total,
                 this.status,
-                this.shippingAddress.toDomain()
-        );
+                this.firstName,
+                this.lastName,
+                new PhoneNumber(this.phoneNumber),
+                new Email(this.email),
+                this.streetNumber,
+                this.street,
+                this.city,
+                this.region,
+                this.postalCode,
+                this.country,
+                this.createdAt,
+                this.updatedAt);
     }
 
 }

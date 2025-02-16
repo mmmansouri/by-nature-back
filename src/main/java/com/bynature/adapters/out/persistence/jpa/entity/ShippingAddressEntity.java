@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -46,6 +47,12 @@ public class ShippingAddressEntity {
 
     @Column(nullable = false)
     private String country;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     public ShippingAddressEntity(UUID id, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country) {
         this.id = id;
@@ -131,7 +138,9 @@ public class ShippingAddressEntity {
         this.city,
         this.region,
         this.postalCode,
-        this.country);
+        this.country,
+        this.createdAt,
+        this.updatedAt);
     }
 }
 

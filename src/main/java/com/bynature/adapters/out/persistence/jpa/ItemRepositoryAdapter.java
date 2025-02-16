@@ -47,23 +47,12 @@ public class ItemRepositoryAdapter implements ItemRepository {
 
     // Mapping from domain to persistence entity
     private ItemEntity mapToEntity(Item item) {
-        ItemEntity entity = new ItemEntity();
-        entity.setId(item.getId());
-        entity.setName(item.getName());
-        entity.setDescription(item.getDescription());
-        entity.setPrice(item.getPrice());
-        entity.setImageUrl(item.getImageUrl());
-        return entity;
+        return new ItemEntity(item.getId(), item.getName(), item.getDescription(), item.getPrice(), item.getImageUrl(),
+                item.getCreatedAt(), item.getUpdatedAt());
     }
 
     // Mapping from persistence entity to domain model
     private Item mapToDomain(ItemEntity entity) {
-        return new Item(
-                entity.getId(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getPrice(),
-                entity.getImageUrl()
-        );
+        return entity.toDomain();
     }
 }
