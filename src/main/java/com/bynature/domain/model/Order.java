@@ -21,10 +21,30 @@ public class Order {
     private final String postalCode;
     private final String country;
     private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
 
-   public Order(UUID id, UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
+   public Order(UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country) {
+        this.id = UUID.randomUUID();
+        this.customerId = customerId;
+        this.orderItems = orderItems;
+        this.total = total;
+        this.status = status;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.streetNumber = streetNumber;
+        this.street = street;
+        this.city = city;
+        this.region = region;
+        this.postalCode = postalCode;
+        this.country = country;
+       this.createdAt = LocalDateTime.now();
+       this.updatedAt = LocalDateTime.now();
+   }
+
+    public Order(UUID id, UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.customerId = customerId;
         this.orderItems = orderItems;
@@ -40,9 +60,9 @@ public class Order {
         this.region = region;
         this.postalCode = postalCode;
         this.country = country;
-       this.createdAt = createdAt;
-       this.updatedAt = updatedAt;
-   }
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public UUID getId() {
         return id;
@@ -110,5 +130,9 @@ public class Order {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

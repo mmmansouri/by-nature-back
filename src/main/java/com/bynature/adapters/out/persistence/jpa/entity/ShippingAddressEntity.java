@@ -129,7 +129,8 @@ public class ShippingAddressEntity {
     }
 
     public ShippingAddress toDomain() {
-        return new ShippingAddress(this.firstName,
+        return new ShippingAddress(this.id,
+        this.firstName,
         this.lastName,
         new PhoneNumber(this.phoneNumber),
         new Email(this.email),

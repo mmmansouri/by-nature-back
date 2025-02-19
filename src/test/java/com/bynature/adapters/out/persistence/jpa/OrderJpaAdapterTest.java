@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,9 +28,9 @@ public class OrderJpaAdapterTest extends AbstractByNatureTest {
 
         Map<UUID, Integer> orderItems = Map.of(UUID.fromString("bc9264a3-8d7e-4971-870e-3b745f20a7fa"), 2,UUID.fromString("cc2aa61b-03ad-42df-b762-af3d5f5ae1ae"),3);
 
-        Order order = new Order(UUID.randomUUID(), UUID.randomUUID(), orderItems ,150.0, "NEW",
+        Order order = new Order(UUID.randomUUID(), orderItems ,150.0, "NEW",
                 "Mohamed", "Mohamed", new PhoneNumber("+33634164387"),new Email("toto@gmail.com"),"123", "Avenue de la redoute",
-                        "Asnières","Haut de France","92600", "France", LocalDateTime.now(), LocalDateTime.now());
+                        "Asnières","Haut de France","92600", "France");
 
 
         // Save the order entity

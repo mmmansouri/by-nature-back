@@ -10,9 +10,19 @@ public class Item {
     private final double price;
     private final String imageUrl;
     private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
-    public Item(UUID id, String name, String description, double price, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Item(String name, String description, double price, String imageUrl) {
+        this.id = UUID.randomUUID();
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.imageUrl = imageUrl;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt =  LocalDateTime.now();
+    }
+
+    public Item(UUID id , String name, String description, double price, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -48,5 +58,9 @@ public class Item {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime now) {
+        this.updatedAt = now;
     }
 }

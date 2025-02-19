@@ -1,9 +1,9 @@
 package com.bynature.adapters.in.web;
 
 import com.bynature.AbstractByNatureTest;
-import com.bynature.adapters.in.web.dto.request.OrderRequest;
-import com.bynature.adapters.in.web.dto.request.ShippingAddressRequest;
-import com.bynature.adapters.in.web.dto.response.OrderResponse;
+import com.bynature.adapters.in.web.dto.request.OrderCreationRequest;
+import com.bynature.adapters.in.web.dto.request.ShippingAddressCreationRequest;
+import com.bynature.adapters.in.web.dto.response.OrderRetrievalResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +29,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
     @Test
     public void whenCreateOrder_shouldRetrieveIT_E2E() {
         // Prepare a sample ShippingAddressRequest.
-        ShippingAddressRequest addressRequest = new ShippingAddressRequest("Mohamed", "Mohamed",
+        ShippingAddressCreationRequest addressRequest = new ShippingAddressCreationRequest("Mohamed", "Mohamed",
                 "+33634164387",
                 "toto@gmail.com",
                 "123", "Avenue de la redoute",
@@ -36,20 +37,17 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
                 "92600", "France");
 
         // Prepare a sample OrderRequest.
-        OrderRequest orderRequest = new OrderRequest();
-        orderRequest.setCustomerId(UUID.randomUUID());
-        orderRequest.setTotal(100.0);
-        orderRequest.setStatus("NEW");
-        orderRequest.setShippingAddress(addressRequest);
-        // You can add orderItems if necessary.
-
+        OrderCreationRequest orderCreationRequest = new OrderCreationRequest(UUID.randomUUID(),
+                Map.of(UUID.fromString("b3f9bfb5-90c1-4a8f-bab0-ac8bb355f3f1"), 2),
+                100.0, "NEW",
+                addressRequest);
 
         // Create HTTP headers and set the content type.
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // Wrap the OrderRequest in an HttpEntity.
-        HttpEntity<OrderRequest> requestEntity = new HttpEntity<>(orderRequest, headers);
+        HttpEntity<OrderCreationRequest> requestEntity = new HttpEntity<>(orderCreationRequest, headers);
 
         // Execute the POST request to the /orders endpoint.
         ResponseEntity<UUID> responseOrderUUID = restTemplate.postForEntity("/orders", requestEntity, UUID.class);
@@ -66,27 +64,27 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         assertThat(location).isNotNull();
 
         // Call the GET /orders/{id} endpoint
-        ResponseEntity<OrderResponse> responseOrder = restTemplate.getForEntity("/orders/" + orderUUID, OrderResponse.class);
+        ResponseEntity<OrderRetrievalResponse> responseOrder = restTemplate.getForEntity("/orders/" + orderUUID, OrderRetrievalResponse.class);
 
         // Assert the responseOrder
         assertThat(responseOrder.getStatusCode()).isEqualTo(HttpStatus.OK);
-        OrderResponse orderResponse = responseOrder.getBody();
-        assertThat(orderResponse).isNotNull();
-        assertThat(orderResponse.getId()).isEqualTo(orderUUID);
-        assertThat(orderResponse.getCustomerId()).isEqualTo(orderRequest.getCustomerId());
-        assertThat(orderResponse.getTotal()).isEqualTo(orderRequest.getTotal());
-        assertThat(orderResponse.getStatus()).isEqualTo(orderRequest.getStatus());
-        assertThat(orderResponse.getShippingAddress()).isNotNull();
-        assertThat(orderResponse.getShippingAddress().getFirstName()).isEqualTo(addressRequest.getFirstName());
-        assertThat(orderResponse.getShippingAddress().getLastName()).isEqualTo(addressRequest.getLastName());
-        assertThat(orderResponse.getShippingAddress().getPhoneNumber()).isEqualTo(addressRequest.getPhoneNumber());
-        assertThat(orderResponse.getShippingAddress().getEmail()).isEqualTo(addressRequest.getEmail());
-        assertThat(orderResponse.getShippingAddress().getCity()).isEqualTo(addressRequest.getCity());
-        assertThat(orderResponse.getShippingAddress().getCountry()).isEqualTo(addressRequest.getCountry());
-        assertThat(orderResponse.getShippingAddress().getPostalCode()).isEqualTo(addressRequest.getPostalCode());
-        assertThat(orderResponse.getShippingAddress().getStreet()).isEqualTo(addressRequest.getStreet());
-        assertThat(orderResponse.getShippingAddress().getStreetNumber()).isEqualTo(addressRequest.getStreetNumber());
-        assertThat(orderResponse.getShippingAddress().getRegion()).isEqualTo(addressRequest.getRegion());
+        OrderRetrievalResponse orderRetrievalResponse = responseOrder.getBody();
+        assertThat(orderRetrievalResponse).isNotNull();
+        assertThat(orderRetrievalResponse.id()).isEqualTo(orderUUID);
+        assertThat(orderRetrievalResponse.customerId()).isEqualTo(orderCreationRequest.customerId());
+        assertThat(orderRetrievalResponse.total()).isEqualTo(orderCreationRequest.total());
+        assertThat(orderRetrievalResponse.status()).isEqualTo(orderCreationRequest.status());
+        assertThat(orderRetrievalResponse.shippingAddress()).isNotNull();
+        assertThat(orderRetrievalResponse.shippingAddress().firstName()).isEqualTo(addressRequest.firstName());
+        assertThat(orderRetrievalResponse.shippingAddress().lastName()).isEqualTo(addressRequest.lastName());
+        assertThat(orderRetrievalResponse.shippingAddress().phoneNumber()).isEqualTo(addressRequest.phoneNumber());
+        assertThat(orderRetrievalResponse.shippingAddress().email()).isEqualTo(addressRequest.email());
+        assertThat(orderRetrievalResponse.shippingAddress().city()).isEqualTo(addressRequest.city());
+        assertThat(orderRetrievalResponse.shippingAddress().country()).isEqualTo(addressRequest.country());
+        assertThat(orderRetrievalResponse.shippingAddress().postalCode()).isEqualTo(addressRequest.postalCode());
+        assertThat(orderRetrievalResponse.shippingAddress().street()).isEqualTo(addressRequest.street());
+        assertThat(orderRetrievalResponse.shippingAddress().streetNumber()).isEqualTo(addressRequest.streetNumber());
+        assertThat(orderRetrievalResponse.shippingAddress().region()).isEqualTo(addressRequest.region());
 
     }
 }

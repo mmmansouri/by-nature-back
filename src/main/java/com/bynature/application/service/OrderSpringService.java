@@ -5,6 +5,7 @@ import com.bynature.domain.repository.OrderRepository;
 import com.bynature.domain.service.OrderService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,7 @@ public class OrderSpringService implements OrderService {
     }
 
     public void updateOrder(Order order) {
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepository.updateOrder(order);
     }
 

@@ -6,8 +6,10 @@ import com.bynature.domain.model.Item;
 import com.bynature.domain.repository.ItemRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 public class ItemRepositoryAdapter implements ItemRepository {
@@ -38,6 +40,11 @@ public class ItemRepositoryAdapter implements ItemRepository {
         // Retrieve the entity and map back to the domain model
         Optional<ItemEntity> optionalEntity = itemJpaRepository.findById(itemId);
         return optionalEntity.map(this::mapToDomain).orElse(null);
+    }
+
+    @Override
+    public List<Item> getAllItems() {
+        return itemJpaRepository.findAll().stream().map(this::mapToDomain).collect(Collectors.toList());
     }
 
     @Override

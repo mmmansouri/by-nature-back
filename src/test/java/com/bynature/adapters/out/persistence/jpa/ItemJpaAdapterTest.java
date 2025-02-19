@@ -8,9 +8,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -23,15 +20,14 @@ public class ItemJpaAdapterTest extends AbstractByNatureTest {
 
     @Test
     public void whenSavingItem_thenItCanBeRetrieved() {
-        UUID itemId = UUID.randomUUID();
-        Item item = new Item(itemId, "Test Item", "Test Description", 100.0,
-                "http://test.com/image.jpg", LocalDateTime.now(), LocalDateTime.now());
+        Item item = new Item( "Test Item", "Test Description", 100.0,
+                "http://test.com/image.jpg");
 
         // Save the item entity
         itemJpaRepository.saveItem(item);
 
         // Retrieve the item entity
-        Item foundItem = itemJpaRepository.getItem(itemId);
+        Item foundItem = itemJpaRepository.getItem(item.getId());
         assertThat(foundItem).isNotNull();
         assertThat(foundItem.getName()).isEqualTo("Test Item");
     }

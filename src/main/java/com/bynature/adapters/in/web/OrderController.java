@@ -1,7 +1,7 @@
 package com.bynature.adapters.in.web;
 
-import com.bynature.adapters.in.web.dto.request.OrderRequest;
-import com.bynature.adapters.in.web.dto.response.OrderResponse;
+import com.bynature.adapters.in.web.dto.request.OrderCreationRequest;
+import com.bynature.adapters.in.web.dto.response.OrderRetrievalResponse;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +26,10 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<UUID> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<UUID> createOrder(@RequestBody OrderCreationRequest orderCreationRequest) {
 
         // Delegate to the use-case to create the order.
-        UUID createdOrderUUID = orderService.createOrder(orderRequest.toDomain());
+        UUID createdOrderUUID = orderService.createOrder(orderCreationRequest.toDomain());
 
         // Return a 201 Created response with the location of the new order.
         return ResponseEntity
@@ -38,7 +38,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable("id") UUID uuid) {
+    public ResponseEntity<OrderRetrievalResponse> getOrder(@PathVariable("id") UUID uuid) {
 
         Order order = orderService.getOrder(uuid);
 
@@ -48,6 +48,6 @@ public class OrderController {
 
         return ResponseEntity
                 .ok()
-                .body(OrderResponse.fromDomain(order));
+                .body(OrderRetrievalResponse.fromDomain(order));
     }
 }

@@ -16,8 +16,8 @@ public class Customer {
     private String postalCode;
     private String country;
 
-    public Customer(UUID id, String firstName, String lastName, Email email, PhoneNumber phoneNumber) {
-        this.id = id;
+    public Customer(String firstName, String lastName, Email email, PhoneNumber phoneNumber) {
+        this.id = UUID.randomUUID();
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
