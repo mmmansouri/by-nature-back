@@ -1,6 +1,10 @@
 package com.bynature.domain.model;
 
+import com.bynature.domain.exception.OrderValidationException;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,6 +46,8 @@ public class Order {
         this.country = country;
        this.createdAt = LocalDateTime.now();
        this.updatedAt = LocalDateTime.now();
+
+       this.validate();
    }
 
     public Order(UUID id, UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -62,6 +68,8 @@ public class Order {
         this.country = country;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+
+        this.validate();
     }
 
     public UUID getId() {
@@ -135,4 +143,73 @@ public class Order {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    protected void validate() {
+        List<String> violations = new ArrayList<>();
+
+        if(id == null) {
+            violations.add("L'ID de la commande ne peut pas être null");
+        }
+
+        if (firstName == null || firstName.trim().isEmpty()) {
+            violations.add("Le prénom ne peut pas être vide");
+        }
+
+        if (lastName == null || lastName.trim().isEmpty()) {
+            violations.add("Le nom ne peut pas être vide");
+        }
+
+        if (phoneNumber == null) {
+            violations.add("Le numéro de téléphone ne peut pas être null");
+        }
+
+        if (email == null) {
+            violations.add("L'email ne peut pas être null");
+        }
+
+        if (streetNumber == null || streetNumber.trim().isEmpty()) {
+            violations.add("Le numéro de rue ne peut pas être vide");
+        }
+
+        if (street == null || street.trim().isEmpty()) {
+            violations.add("Le nom de rue ne peut pas être vide");
+        }
+
+        if (city == null || city.trim().isEmpty()) {
+            violations.add("La ville ne peut pas être vide");
+        }
+
+        if (region == null || region.trim().isEmpty()) {
+            violations.add("La région ne peut pas être vide");
+        }
+
+        if (postalCode == null || postalCode.trim().isEmpty()) {
+            violations.add("Le code postal ne peut pas être vide");
+        }
+
+        if (country == null || country.trim().isEmpty()) {
+            violations.add("Le pays ne peut pas être vide");
+        }
+
+        if (customerId == null) {
+            violations.add("L'ID du client ne peut pas être null");
+        }
+
+        if (orderItems == null || orderItems.isEmpty()) {
+            violations.add("La liste des articles ne peut pas être vide");
+        }
+
+        if (total <= 0) {
+            violations.add("Le total doit être positif");
+        }
+
+        if (status == null || status.trim().isEmpty()) {
+            violations.add("Le statut ne peut pas être vide");
+        }
+
+        if (!violations.isEmpty()) {
+            throw new OrderValidationException(violations);
+        }
+    }
+
 }

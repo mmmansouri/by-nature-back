@@ -10,6 +10,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
+@Valid
 public class OrderEntity {
     @Id
     private UUID id;
@@ -63,6 +66,7 @@ public class OrderEntity {
     private String country;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotEmpty()
     private List<OrderItemEntity> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
