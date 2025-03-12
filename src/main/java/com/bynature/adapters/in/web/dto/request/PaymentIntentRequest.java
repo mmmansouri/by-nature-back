@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 
 public class PaymentIntentRequest {
 
@@ -21,10 +23,14 @@ public class PaymentIntentRequest {
     @Size(min = 5, max = 200)
     private String productName;
 
-    public PaymentIntentRequest(Long amount, String email, String productName) {
+    @NotBlank
+    private UUID orderId;
+
+    public PaymentIntentRequest(Long amount, String email, String productName, UUID orderId) {
         this.amount = amount;
         this.email = email;
         this.productName = productName;
+        this.orderId = orderId;
     }
 
     public Long getAmount() {
@@ -49,5 +55,13 @@ public class PaymentIntentRequest {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public UUID getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(UUID orderId) {
+        this.orderId = orderId;
     }
 }

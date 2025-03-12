@@ -4,6 +4,7 @@ import com.bynature.adapters.in.web.dto.request.PaymentIntentRequest;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,13 +14,13 @@ public class PaymentIntentController {
 
 
 	@PostMapping("/create-payment-intent")
-	public String createPaymentIntent(@RequestBody PaymentIntentRequest paymentIntentRequest)
+	public ResponseEntity<String> createPaymentIntent(@RequestBody PaymentIntentRequest paymentIntentRequest)
 			throws StripeException {
 		PaymentIntentCreateParams params =
 				PaymentIntentCreateParams.builder()
 						.setAmount(paymentIntentRequest.getAmount() * 100L)
-						.putMetadata("productName",
-								paymentIntentRequest.getProductName())
+						.putMetadata("productName", paymentIntentRequest.getProductName())
+						.putMetadata("orderId", paymentIntentRequest.getOrderId().toString()) // Ajouter l'ID de la commande
 						.setCurrency("EUR")
 						.setAutomaticPaymentMethods(
 								PaymentIntentCreateParams
@@ -30,7 +31,7 @@ public class PaymentIntentController {
 						)
 						.build();
 
-		return PaymentIntent.create(params).toJson();
+		return ResponseEntity.ok(PaymentIntent.create(params).toJson());
 
 	}
 }
