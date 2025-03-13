@@ -20,17 +20,30 @@ public class PaymentIntentRequest {
     private String email;
 
     @NotBlank
+    private String customerId;
+
+    @NotBlank
+    private String phone;
+
+    @NotBlank
+    private String state;
+
+    @NotBlank
     @Size(min = 5, max = 200)
     private String productName;
 
     @NotBlank
     private UUID orderId;
 
-    public PaymentIntentRequest(Long amount, String email, String productName, UUID orderId) {
+    public PaymentIntentRequest(Long amount, String email, String productName, UUID orderId, String customerId,
+                                String phone, String state) {
         this.amount = amount;
         this.email = email;
         this.productName = productName;
         this.orderId = orderId;
+        this.customerId = customerId;
+        this.phone = phone;
+        this.state = state;
     }
 
     public Long getAmount() {
@@ -63,5 +76,29 @@ public class PaymentIntentRequest {
 
     public void setOrderId(UUID orderId) {
         this.orderId = orderId;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

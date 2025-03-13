@@ -45,6 +45,10 @@ public class StripeWebhookController {
         }
 
         switch (event.getType()) {
+            case "payment_intent.created":
+                PaymentIntent createdPaymentIntent = (PaymentIntent) stripeObject;
+                logger.info("Paiement créé: " + createdPaymentIntent.getId());
+                break;
             case "payment_intent.succeeded":
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 logger.info("Paiement réussi: " + paymentIntent.getId());
