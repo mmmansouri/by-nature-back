@@ -63,7 +63,8 @@ public class OrderRepositoryAdapter implements OrderRepository {
                 order.getCountry(), order.getCreatedAt(), order.getUpdatedAt());
 
         // Retrieve all item IDs from the order's items.
-        Set<UUID> itemIds = order.getOrderItems().keySet();
+        Set<UUID> itemIds = order.getOrderItems().stream()
+                .map(model -> model.getItem().getId()).collect(Collectors.toSet());
 
         // Use a single query to fetch all items.
         List<ItemEntity> itemEntities = itemJpaRepository.findAllById(itemIds);
@@ -73,16 +74,16 @@ public class OrderRepositoryAdapter implements OrderRepository {
                 .collect(Collectors.toMap(ItemEntity::getId, Function.identity()));
 
         // Iterate over each order item and build the OrderItemEntity objects.
-        order.getOrderItems().forEach((itemId, quantity) -> {
-            ItemEntity itemEntity = itemEntityMap.get(itemId);
+        order.getOrderItems().forEach(orderItem -> {
+            ItemEntity itemEntity = itemEntityMap.get(orderItem.getItem().getId());
             if (itemEntity == null) {
-                throw new RuntimeException("Item not found for id: " + itemId);
+                throw new RuntimeException("Item not found for id: " + orderItem.getItem().getId());
             }
             OrderItemEntity orderItemEntity = new OrderItemEntity();
             orderItemEntity.setId(new OrderItemId(order.getId(), itemEntity.getId()));
             orderItemEntity.setOrder(orderEntity);
             orderItemEntity.setItem(itemEntity);
-            orderItemEntity.setQuantity(quantity);
+            orderItemEntity.setQuantity(orderItem.getQuantity());
 
             // Add the OrderItemEntity to the OrderEntity's list.
             orderEntity.addOrderItem(orderItemEntity);

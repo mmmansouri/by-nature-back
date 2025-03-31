@@ -2,8 +2,11 @@ package com.bynature.adapters.in.web;
 
 import com.bynature.AbstractByNatureTest;
 import com.bynature.adapters.in.web.dto.request.OrderCreationRequest;
+import com.bynature.adapters.in.web.dto.request.OrderItemCreationRequest;
 import com.bynature.adapters.in.web.dto.request.ShippingAddressCreationRequest;
 import com.bynature.adapters.in.web.dto.response.OrderRetrievalResponse;
+import com.bynature.adapters.out.persistence.jpa.ItemRepositoryAdapter;
+import com.bynature.domain.model.OrderStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +28,9 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private ItemRepositoryAdapter itemRepositoryAdapter;
 
     @Test
     public void whenCreateOrder_shouldRetrieveIT_E2E() {
@@ -38,8 +44,8 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
 
         // Prepare a sample OrderRequest.
         OrderCreationRequest orderCreationRequest = new OrderCreationRequest(UUID.randomUUID(),
-                Map.of(UUID.fromString("b3f9bfb5-90c1-4a8f-bab0-ac8bb355f3f1"), 2),
-                100.0, "NEW",
+                List.of(new OrderItemCreationRequest(UUID.fromString("b3f9bfb5-90c1-4a8f-bab0-ac8bb355f3f1"), 2)),
+                100.0, OrderStatus.CREATED,
                 addressRequest);
 
         // Create HTTP headers and set the content type.
@@ -50,30 +56,30 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         HttpEntity<OrderCreationRequest> requestEntity = new HttpEntity<>(orderCreationRequest, headers);
 
         // Execute the POST request to the /orders endpoint.
-        ResponseEntity<UUID> responseOrderUUID = restTemplate.postForEntity("/orders", requestEntity, UUID.class);
+        ResponseEntity<OrderRetrievalResponse> responseOrder = restTemplate.postForEntity("/orders", requestEntity, OrderRetrievalResponse.class);
 
         // Assert that we receive a 201 Created status.
-        assertThat(responseOrderUUID.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(responseOrder.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         // Verify that the body contains the expected order ID.
-        UUID orderUUID = responseOrderUUID.getBody();
-        assertThat(orderUUID).isNotNull();
+        OrderRetrievalResponse orderResponse = responseOrder.getBody();
+        assertThat(orderResponse).isNotNull();
 
         // Verify the Location header is set correctly.
-        URI location = responseOrderUUID.getHeaders().getLocation();
+        URI location = responseOrder.getHeaders().getLocation();
         assertThat(location).isNotNull();
 
         // Call the GET /orders/{id} endpoint
-        ResponseEntity<OrderRetrievalResponse> responseOrder = restTemplate.getForEntity("/orders/" + orderUUID, OrderRetrievalResponse.class);
+        responseOrder = restTemplate.getForEntity("/orders/" + orderResponse.id(), OrderRetrievalResponse.class);
 
         // Assert the responseOrder
         assertThat(responseOrder.getStatusCode()).isEqualTo(HttpStatus.OK);
         OrderRetrievalResponse orderRetrievalResponse = responseOrder.getBody();
         assertThat(orderRetrievalResponse).isNotNull();
-        assertThat(orderRetrievalResponse.id()).isEqualTo(orderUUID);
+        assertThat(orderRetrievalResponse.id()).isEqualTo(orderResponse.id());
         assertThat(orderRetrievalResponse.customerId()).isEqualTo(orderCreationRequest.customerId());
         assertThat(orderRetrievalResponse.total()).isEqualTo(orderCreationRequest.total());
-        assertThat(orderRetrievalResponse.status()).isEqualTo(orderCreationRequest.status());
+        assertThat(orderRetrievalResponse.status()).isEqualTo(orderCreationRequest.status().toString());
         assertThat(orderRetrievalResponse.shippingAddress()).isNotNull();
         assertThat(orderRetrievalResponse.shippingAddress().firstName()).isEqualTo(addressRequest.firstName());
         assertThat(orderRetrievalResponse.shippingAddress().lastName()).isEqualTo(addressRequest.lastName());

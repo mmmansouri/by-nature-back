@@ -3,21 +3,26 @@ package com.bynature.adapters.out.persistence.jpa.entity;
 
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Order;
+import com.bynature.domain.model.OrderItem;
+import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.model.PhoneNumber;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
@@ -32,8 +37,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private double total;
 
-    @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @JdbcType(value = PostgreSQLEnumJdbcType.class)
+    private OrderStatus status;
 
     @Column(nullable = false)
     private String firstName;
@@ -75,7 +81,7 @@ public class OrderEntity {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public OrderEntity(UUID id, UUID customerId, double total, String status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public OrderEntity(UUID id, UUID customerId, double total, OrderStatus status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.customerId = customerId;
         this.total = total;
@@ -124,11 +130,11 @@ public class OrderEntity {
         this.total = total;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 
@@ -253,7 +259,8 @@ public class OrderEntity {
                 this.id,
                 this.customerId,
                 this.orderItems.stream()
-                        .collect(Collectors.toMap(orderItem -> orderItem.getItem().getId(), OrderItemEntity::getQuantity)),
+                        .map(entity -> new OrderItem(entity.getItem().toDomain(), entity.getQuantity()))
+                        .toList(),
                 this.total,
                 this.status,
                 this.firstName,

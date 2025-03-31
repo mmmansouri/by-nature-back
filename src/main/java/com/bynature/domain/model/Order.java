@@ -5,15 +5,14 @@ import com.bynature.domain.exception.OrderValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class Order {
     private final UUID id;
     private final UUID customerId;
-    private final Map<UUID, Integer> orderItems;
+    private final List<OrderItem> orderItems;
     private final double total;
-    private final String status;
+    private OrderStatus status;
     private final String firstName;
     private final String lastName;
     private final PhoneNumber phoneNumber;
@@ -28,12 +27,14 @@ public class Order {
     private LocalDateTime updatedAt;
 
 
-   public Order(UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country) {
+    public Order(UUID customerId, List<OrderItem> orderItems, double total, String firstName,
+                 String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city,
+                 String region, String postalCode, String country) {
         this.id = UUID.randomUUID();
         this.customerId = customerId;
         this.orderItems = orderItems;
         this.total = total;
-        this.status = status;
+        this.status = OrderStatus.CREATED;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
@@ -44,13 +45,15 @@ public class Order {
         this.region = region;
         this.postalCode = postalCode;
         this.country = country;
-       this.createdAt = LocalDateTime.now();
-       this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
 
-       this.validate();
-   }
+        this.validate();
+    }
 
-    public Order(UUID id, UUID customerId, Map<UUID, Integer> orderItems, double total, String status, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Order(UUID id, UUID customerId, List<OrderItem> orderItems, double total, OrderStatus status, String firstName,
+                 String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city,
+                 String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.customerId = customerId;
         this.orderItems = orderItems;
@@ -80,7 +83,7 @@ public class Order {
         return customerId;
     }
 
-    public Map<UUID, Integer> getOrderItems() {
+    public List<OrderItem> getOrderItems() {
         return orderItems;
     }
 
@@ -88,7 +91,7 @@ public class Order {
         return total;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
@@ -144,10 +147,15 @@ public class Order {
         this.updatedAt = updatedAt;
     }
 
+    protected void updateStatus(OrderStatus status) {
+        this.status = status;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     protected void validate() {
         List<String> violations = new ArrayList<>();
 
-        if(id == null) {
+        if (id == null) {
             violations.add("L'ID de la commande ne peut pas être null");
         }
 
@@ -203,7 +211,7 @@ public class Order {
             violations.add("Le total doit être positif");
         }
 
-        if (status == null || status.trim().isEmpty()) {
+        if (status == null) {
             violations.add("Le statut ne peut pas être vide");
         }
 

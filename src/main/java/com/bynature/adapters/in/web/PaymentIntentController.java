@@ -19,7 +19,6 @@ public class PaymentIntentController {
 		PaymentIntentCreateParams params =
 				PaymentIntentCreateParams.builder()
 						.setAmount(paymentIntentRequest.getAmount() * 100L)
-						.setCustomer(paymentIntentRequest.getCustomerId())
 						.setReceiptEmail(paymentIntentRequest.getEmail())
 						.putMetadata("productName", paymentIntentRequest.getProductName())
 						.putMetadata("orderId", paymentIntentRequest.getOrderId().toString()) // Ajouter l'ID de la commande

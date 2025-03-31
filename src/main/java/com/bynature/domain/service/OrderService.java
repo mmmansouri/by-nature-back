@@ -6,11 +6,11 @@ import java.util.UUID;
 
 public interface OrderService {
 
-    UUID createOrder(Order order) ;
+    UUID createOrder(Order order);
 
     void updateOrder(Order order);
 
-    Order getOrder(UUID orderId) ;
+    Order getOrder(UUID orderId);
 
-    void deleteOrder(UUID orderId) ;
+    void deleteOrder(UUID orderId);
 }
