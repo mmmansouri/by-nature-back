@@ -13,6 +13,7 @@ public class Order {
     private final List<OrderItem> orderItems;
     private final double total;
     private OrderStatus status;
+    private String paymentIntentId;
     private final String firstName;
     private final String lastName;
     private final PhoneNumber phoneNumber;
@@ -147,8 +148,17 @@ public class Order {
         this.updatedAt = updatedAt;
     }
 
-    protected void updateStatus(OrderStatus status) {
+    public void updateStatus(OrderStatus status) {
         this.status = status;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getPaymentIntentId() {
+        return paymentIntentId;
+    }
+
+    public void setPaymentIntentId(String paymentIntentId) {
+        this.paymentIntentId = paymentIntentId;
         this.updatedAt = LocalDateTime.now();
     }
 

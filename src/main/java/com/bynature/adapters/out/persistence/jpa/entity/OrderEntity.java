@@ -41,6 +41,10 @@ public class OrderEntity {
     @JdbcType(value = PostgreSQLEnumJdbcType.class)
     private OrderStatus status;
 
+
+    @Column(name = "payment_intent_id")
+    private String paymentIntentId;
+
     @Column(nullable = false)
     private String firstName;
 
@@ -240,6 +244,15 @@ public class OrderEntity {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPaymentIntentId() {
+        return paymentIntentId;
+    }
+
+    public void setPaymentIntentId(String paymentIntentId) {
+        this.paymentIntentId = paymentIntentId;
+        this.updatedAt = LocalDateTime.now();
     }
 
     // Helper to add order items

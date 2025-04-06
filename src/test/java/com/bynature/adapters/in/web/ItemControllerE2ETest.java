@@ -1,8 +1,8 @@
 package com.bynature.adapters.in.web;
 
 import com.bynature.AbstractByNatureTest;
-import com.bynature.adapters.in.web.dto.request.ItemCreationRequest;
-import com.bynature.adapters.in.web.dto.response.ItemRetrievalResponse;
+import com.bynature.adapters.in.web.item.ItemCreationRequest;
+import com.bynature.adapters.in.web.item.ItemRetrievalResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,10 +1,10 @@
 package com.bynature.adapters.in.web;
 
 import com.bynature.AbstractByNatureTest;
-import com.bynature.adapters.in.web.dto.request.OrderCreationRequest;
-import com.bynature.adapters.in.web.dto.request.OrderItemCreationRequest;
-import com.bynature.adapters.in.web.dto.request.ShippingAddressCreationRequest;
-import com.bynature.adapters.in.web.dto.response.OrderRetrievalResponse;
+import com.bynature.adapters.in.web.order.dto.request.OrderCreationRequest;
+import com.bynature.adapters.in.web.order.dto.request.OrderItemCreationRequest;
+import com.bynature.adapters.in.web.order.dto.request.ShippingAddressCreationRequest;
+import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
 import com.bynature.adapters.out.persistence.jpa.ItemRepositoryAdapter;
 import com.bynature.domain.model.OrderStatus;
 import org.junit.jupiter.api.Test;

@@ -12,8 +12,10 @@ create table items
 
 CREATE TYPE order_status AS ENUM (
     'CREATED',
-    'PAYMENT_PENDING',
+    'PAYMENT_INTEND_CREATED',
+    'PAYMENT_PROCESSING',
     'PAYMENT_CONFIRMED',
+    'PAYMENT_FAILED',
     'SHIPPED',
     'DELIVERED',
     'CANCELLED'
@@ -40,6 +42,7 @@ create table orders
     postal_code   varchar(255) not null,
     region        varchar(255) not null,
     status        order_status not null,
+    payment_intent_id varchar(255),
     street        varchar(255) not null,
     street_number varchar(255) not null,
     created_at    timestamp(6) not null,

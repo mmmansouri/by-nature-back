@@ -1,7 +1,5 @@
-package com.bynature.adapters.in.web;
+package com.bynature.adapters.in.web.item;
 
-import com.bynature.adapters.in.web.dto.request.ItemCreationRequest;
-import com.bynature.adapters.in.web.dto.response.ItemRetrievalResponse;
 import com.bynature.domain.model.Item;
 import com.bynature.domain.service.ItemService;
 import org.springframework.http.ResponseEntity;

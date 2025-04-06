@@ -1,7 +1,7 @@
-package com.bynature.adapters.in.web;
+package com.bynature.adapters.in.web.order;
 
-import com.bynature.adapters.in.web.dto.request.OrderCreationRequest;
-import com.bynature.adapters.in.web.dto.response.OrderRetrievalResponse;
+import com.bynature.adapters.in.web.order.dto.request.OrderCreationRequest;
+import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.service.ItemService;
 import com.bynature.domain.service.OrderService;

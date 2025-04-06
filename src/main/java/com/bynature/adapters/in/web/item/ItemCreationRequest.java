@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.dto.request;
+package com.bynature.adapters.in.web.item;
 
 import com.bynature.domain.model.Item;
 

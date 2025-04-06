@@ -7,9 +7,12 @@ import com.bynature.adapters.out.persistence.jpa.entity.OrderItemId;
 import com.bynature.adapters.out.persistence.jpa.repository.ItemJpaRepository;
 import com.bynature.adapters.out.persistence.jpa.repository.OrderJpaRepository;
 import com.bynature.domain.model.Order;
+import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.repository.OrderRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +48,18 @@ public class OrderRepositoryAdapter implements OrderRepository {
     }
 
     @Override
+    @Transactional
+    public void updateOrderStatus(UUID orderId,  OrderStatus status, String paymentIntentId) {
+        orderJpaRepository.updateOrderStatus(orderId, status, paymentIntentId, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatus(UUID orderId, OrderStatus status) {
+        orderJpaRepository.updateOrderStatus(orderId, status, LocalDateTime.now());
+    }
+
+    @Override
     public Order getOrder(UUID orderId) {
         Optional<OrderEntity> optionalEntity = orderJpaRepository.findById(orderId);
         return optionalEntity.map(this::mapToDomain).orElse(null);
@@ -54,6 +69,8 @@ public class OrderRepositoryAdapter implements OrderRepository {
     public void deleteOrder(UUID orderId) {
         orderJpaRepository.deleteById(orderId);
     }
+
+
 
     private OrderEntity mapToEntity(Order order) {
 

@@ -1,6 +1,7 @@
 package com.bynature.application.service;
 
 import com.bynature.domain.model.Order;
+import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.repository.OrderRepository;
 import com.bynature.domain.service.OrderService;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,14 @@ public class OrderSpringService implements OrderService {
     public void updateOrder(Order order) {
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.updateOrder(order);
+    }
+
+    public void updateOrderStatus(UUID orderId, OrderStatus status) {
+        orderRepository.updateOrderStatus(orderId, status);
+    }
+
+    public void updateOrderStatus(UUID orderId, OrderStatus status, String paymentIntentId) {
+        orderRepository.updateOrderStatus(orderId, status, paymentIntentId);
     }
 
     public Order getOrder(UUID orderId) {

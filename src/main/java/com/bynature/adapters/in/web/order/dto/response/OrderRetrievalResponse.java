@@ -1,6 +1,7 @@
-package com.bynature.adapters.in.web.dto.response;
+package com.bynature.adapters.in.web.order.dto.response;
 
 
+import com.bynature.adapters.in.web.item.ItemRetrievalResponse;
 import com.bynature.domain.model.Order;
 
 import java.util.List;

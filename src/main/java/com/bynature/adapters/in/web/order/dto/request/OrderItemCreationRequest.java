@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.dto.request;
+package com.bynature.adapters.in.web.order.dto.request;
 
 import java.util.UUID;
 
