@@ -1,6 +1,7 @@
 package com.bynature.adapters.out.persistence.jpa;
 
 import com.bynature.AbstractByNatureTest;
+import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
 import com.bynature.domain.model.Item;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

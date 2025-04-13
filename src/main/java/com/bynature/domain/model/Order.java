@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class Order {
     private final UUID id;
-    private final UUID customerId;
+    private final Customer customer;
     private final List<OrderItem> orderItems;
     private final double total;
     private OrderStatus status;
@@ -28,11 +28,11 @@ public class Order {
     private LocalDateTime updatedAt;
 
 
-    public Order(UUID customerId, List<OrderItem> orderItems, double total, String firstName,
+    public Order(Customer customer, List<OrderItem> orderItems, double total, String firstName,
                  String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city,
                  String region, String postalCode, String country) {
         this.id = UUID.randomUUID();
-        this.customerId = customerId;
+        this.customer = customer;
         this.orderItems = orderItems;
         this.total = total;
         this.status = OrderStatus.CREATED;
@@ -52,11 +52,11 @@ public class Order {
         this.validate();
     }
 
-    public Order(UUID id, UUID customerId, List<OrderItem> orderItems, double total, OrderStatus status, String firstName,
+    public Order(UUID id, Customer customer, List<OrderItem> orderItems, double total, OrderStatus status, String firstName,
                  String lastName, PhoneNumber phoneNumber, Email email, String streetNumber, String street, String city,
                  String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
-        this.customerId = customerId;
+        this.customer = customer;
         this.orderItems = orderItems;
         this.total = total;
         this.status = status;
@@ -80,8 +80,8 @@ public class Order {
         return id;
     }
 
-    public UUID getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
     public List<OrderItem> getOrderItems() {
@@ -209,7 +209,7 @@ public class Order {
             violations.add("Le pays ne peut pas être vide");
         }
 
-        if (customerId == null) {
+        if (customer == null) {
             violations.add("L'ID du client ne peut pas être null");
         }
 

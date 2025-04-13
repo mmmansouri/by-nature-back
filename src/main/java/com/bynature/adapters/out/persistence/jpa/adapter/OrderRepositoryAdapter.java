@@ -1,16 +1,20 @@
-package com.bynature.adapters.out.persistence.jpa;
+package com.bynature.adapters.out.persistence.jpa.adapter;
 
+import com.bynature.adapters.out.persistence.jpa.entity.CustomerEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.ItemEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.OrderEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.OrderItemEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.OrderItemId;
 import com.bynature.adapters.out.persistence.jpa.repository.ItemJpaRepository;
 import com.bynature.adapters.out.persistence.jpa.repository.OrderJpaRepository;
+import com.bynature.domain.exception.OrderNotFoundException;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.repository.OrderRepository;
-import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +28,8 @@ import java.util.stream.Collectors;
 @Repository
 public class OrderRepositoryAdapter implements OrderRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderRepositoryAdapter.class);
+
     private final OrderJpaRepository orderJpaRepository;
     private final ItemJpaRepository itemJpaRepository;
 
@@ -33,48 +39,83 @@ public class OrderRepositoryAdapter implements OrderRepository {
     }
 
     @Override
+    @Transactional
     public UUID saveOrder(Order order) {
-        // Map domain Order to OrderEntity (implement mapping as needed)
+        log.debug("Saving order with ID: {} for status", order.getId());
+
         OrderEntity entity = mapToEntity(order);
         OrderEntity savedEntity = orderJpaRepository.save(entity);
+
+        log.info("Order saved with ID: {} for status", order.getId());
+
         return savedEntity.getId();
     }
 
     @Override
+    @Transactional
     public void updateOrder(Order order) {
-        // Assuming the order already exists; you can implement update logic accordingly
+        log.debug("Updating order with ID: {} for status", order.getId());
+
+        // Verify order exists before updating
+        getOrder(order.getId());
+
         OrderEntity entity = mapToEntity(order);
         orderJpaRepository.save(entity);
+
+        log.info("Order updated with ID: {} for status", order.getId());
     }
 
     @Override
     @Transactional
     public void updateOrderStatus(UUID orderId,  OrderStatus status, String paymentIntentId) {
+        log.debug("Updating order status with ID: {} for status {}", orderId, status);
+
+        // Verify order exists before updating
+        getOrder(orderId);
+
         orderJpaRepository.updateOrderStatus(orderId, status, paymentIntentId, LocalDateTime.now());
+
+        log.info("Order status updated with ID: {} for status {}", orderId,status);
     }
 
     @Override
     @Transactional
     public void updateOrderStatus(UUID orderId, OrderStatus status) {
+        log.debug("Updating order status with ID: {} for status {}", orderId, status);
         orderJpaRepository.updateOrderStatus(orderId, status, LocalDateTime.now());
+        log.info("Order status updated with ID: {} for status {}", orderId,status);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order getOrder(UUID orderId) {
+
+        log.debug("Fetching order with ID: {}", orderId);
+
         Optional<OrderEntity> optionalEntity = orderJpaRepository.findById(orderId);
-        return optionalEntity.map(this::mapToDomain).orElse(null);
+
+        return optionalEntity.map(this::mapToDomain)
+                .orElseThrow(()->new OrderNotFoundException("Order not found with id: " + orderId));
     }
 
     @Override
+    @Transactional
     public void deleteOrder(UUID orderId) {
+
+        log.debug("Deleting order with ID: {}", orderId);
+
+        // Verify customer exists before deleting
+        getOrder(orderId);
         orderJpaRepository.deleteById(orderId);
+
+        log.info("Customer deleted with ID: {}", orderId);
     }
 
 
 
     private OrderEntity mapToEntity(Order order) {
 
-        OrderEntity orderEntity = new OrderEntity(order.getId(), order.getCustomerId(), order.getTotal(), order.getStatus(),
+        OrderEntity orderEntity = new OrderEntity(order.getId(), CustomerEntity.fromDomain(order.getCustomer()), order.getTotal(), order.getStatus(),
                 order.getFirstName(), order.getLastName(), order.getPhoneNumber().number(), order.getEmail().email(),
                 order.getStreetNumber(), order.getStreet(), order.getCity(), order.getRegion(), order.getPostalCode(),
                 order.getCountry(), order.getCreatedAt(), order.getUpdatedAt());

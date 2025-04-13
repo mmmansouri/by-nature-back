@@ -11,3 +11,7 @@ databaseChangeLog:
             path: db/changelog/V1_initial_items_data.sql
             splitStatements: true
             stripComments: true
+        - sqlFile:
+            path: db/changelog/V1_initial_customers_data.sql
+            splitStatements: true
+            stripComments: true

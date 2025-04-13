@@ -66,7 +66,26 @@ create table shipping_addresses
     updated_at    timestamp(6) not null,
     primary key (id)
 );
+
+create table customers
+(
+    id            uuid         not null,
+    first_name    varchar(255) not null,
+    last_name     varchar(255) not null,
+    email         varchar(255) not null,
+    phone_number  varchar(255) not null,
+    street_number varchar(255),
+    street        varchar(255),
+    city          varchar(255),
+    region        varchar(255),
+    postal_code   varchar(255),
+    country       varchar(255),
+    primary key (id)
+);
+
 alter table if exists order_items
     add constraint FK88tn2oqcxl1034banqif9r70x foreign key (item_id) references items;
 alter table if exists order_items
     add constraint FKbioxgbv59vetrxe0ejfubep1w foreign key (order_id) references orders;
+alter table if exists orders
+    add constraint FK_orders_customer foreign key (customer_id) references customers;

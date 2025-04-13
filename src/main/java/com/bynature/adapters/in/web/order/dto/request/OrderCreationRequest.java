@@ -5,6 +5,7 @@ import com.bynature.domain.model.Order;
 import com.bynature.domain.model.OrderItem;
 import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.model.PhoneNumber;
+import com.bynature.domain.service.CustomerService;
 import com.bynature.domain.service.ItemService;
 
 import java.util.List;
@@ -16,9 +17,9 @@ public record OrderCreationRequest( UUID customerId,
                                     OrderStatus status,
                                     ShippingAddressCreationRequest shippingAddress) {
 
-    public Order toDomain(ItemService itemService) {
+    public Order toDomain(CustomerService customerService, ItemService itemService) {
         return new Order(
-                customerId(),
+                customerService.getCustomer(customerId()),
                 orderItems().stream()
                         .map(orderItem -> new OrderItem(
                                 itemService.getItem(orderItem.itemId()),

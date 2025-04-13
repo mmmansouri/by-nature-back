@@ -5,7 +5,7 @@ import com.bynature.adapters.in.web.order.dto.request.OrderCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.OrderItemCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.ShippingAddressCreationRequest;
 import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
-import com.bynature.adapters.out.persistence.jpa.ItemRepositoryAdapter;
+import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
 import com.bynature.domain.model.OrderStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +43,8 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
                 "92600", "France");
 
         // Prepare a sample OrderRequest.
-        OrderCreationRequest orderCreationRequest = new OrderCreationRequest(UUID.randomUUID(),
-                List.of(new OrderItemCreationRequest(UUID.fromString("b3f9bfb5-90c1-4a8f-bab0-ac8bb355f3f1"), 2)),
+        OrderCreationRequest orderCreationRequest = new OrderCreationRequest(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+                List.of(new OrderItemCreationRequest(UUID.fromString("4ad102fd-bf4a-439f-8027-5c3cf527ffaf"), 2)),
                 100.0, OrderStatus.CREATED,
                 addressRequest);
 
@@ -77,7 +77,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         OrderRetrievalResponse orderRetrievalResponse = responseOrder.getBody();
         assertThat(orderRetrievalResponse).isNotNull();
         assertThat(orderRetrievalResponse.id()).isEqualTo(orderResponse.id());
-        assertThat(orderRetrievalResponse.customerId()).isEqualTo(orderCreationRequest.customerId());
+        assertThat(orderRetrievalResponse.customer()).isEqualTo(orderCreationRequest.customerId());
         assertThat(orderRetrievalResponse.total()).isEqualTo(orderCreationRequest.total());
         assertThat(orderRetrievalResponse.status()).isEqualTo(orderCreationRequest.status().toString());
         assertThat(orderRetrievalResponse.shippingAddress()).isNotNull();

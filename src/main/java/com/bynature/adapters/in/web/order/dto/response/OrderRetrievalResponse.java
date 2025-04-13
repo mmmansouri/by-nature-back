@@ -7,12 +7,12 @@ import com.bynature.domain.model.Order;
 import java.util.List;
 import java.util.UUID;
 
-public record OrderRetrievalResponse(UUID id, UUID customerId, List<OrderItemRetrievalResponse> orderItems,
+public record OrderRetrievalResponse(UUID id, UUID customer, List<OrderItemRetrievalResponse> orderItems,
                                      double total,
                                      String status, ShippingAddressRetrievalResponse shippingAddress) {
 
     public static OrderRetrievalResponse fromDomain(Order order) {
-        return new OrderRetrievalResponse(order.getId(), order.getCustomerId(),
+        return new OrderRetrievalResponse(order.getId(), order.getCustomer().getId(),
                 order.getOrderItems().stream()
                         .map(model -> new OrderItemRetrievalResponse(ItemRetrievalResponse
                                 .fromDomain(model.getItem()), model.getQuantity())).toList(),

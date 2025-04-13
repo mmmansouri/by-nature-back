@@ -1,6 +1,9 @@
 package com.bynature.adapters.out.persistence.jpa;
 
 import com.bynature.AbstractByNatureTest;
+import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
+import com.bynature.adapters.out.persistence.jpa.adapter.OrderRepositoryAdapter;
+import com.bynature.domain.model.Customer;
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Item;
 import com.bynature.domain.model.Order;
@@ -37,9 +40,21 @@ public class OrderJpaAdapterTest extends AbstractByNatureTest {
 
         List<OrderItem> orderItems = List.of( new OrderItem(item1, 2), new OrderItem(item2,3));
 
-        Order order = new Order(UUID.randomUUID(), orderItems ,150.0,
-                "Mohamed", "Mohamed", new PhoneNumber("+33634164387"),new Email("toto@gmail.com"),"123", "Avenue de la redoute",
-                        "Asnières","Haut de France","92600", "France");
+        Customer customer = new Customer(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+                "John","Doe", new Email("john.doe@example.com"),
+                new PhoneNumber("+33612345678"));
+        customer.setCity("Paris");
+        customer.setStreet("Rue de la Paix");
+        customer.setStreetNumber("42");
+        customer.setRegion("Île-de-France");
+        customer.setPostalCode("75001");
+        customer.setCountry("France");
+
+        // Customer can be different from the one in the order
+        Order order = new Order(customer, orderItems ,150.0,
+                "Mohamed", "MANSOURI", new PhoneNumber("+33634164387"),new Email("toto@gmail.com"),
+                "123", "Avenue de la redoute", "Asnières","Haut de France",
+                "92600", "France");
 
 
         // Save the order entity
@@ -50,7 +65,7 @@ public class OrderJpaAdapterTest extends AbstractByNatureTest {
         assertThat(retrievedOrder)
                 .isNotNull();
         assertThat(retrievedOrder.getId()).isEqualTo(order.getId());
-        assertThat(retrievedOrder.getCustomerId()).isEqualTo(order.getCustomerId());
+        assertThat(retrievedOrder.getCustomer()).usingRecursiveComparison().isEqualTo(order.getCustomer());
         assertThat(retrievedOrder.getTotal()).isEqualTo(150.0);
         assertThat(retrievedOrder.getStatus()).isEqualTo(OrderStatus.CREATED);
         assertThat(retrievedOrder).isNotNull();

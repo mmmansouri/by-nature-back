@@ -11,7 +11,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
@@ -31,8 +34,9 @@ public class OrderEntity {
     @Id
     private UUID id;
 
-    @Column(name = "customer_id", nullable = false)
-    private UUID customerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private CustomerEntity customer;
 
     @Column(nullable = false)
     private double total;
@@ -85,9 +89,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public OrderEntity(UUID id, UUID customerId, double total, OrderStatus status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public OrderEntity(UUID id, CustomerEntity customer, double total, OrderStatus status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
-        this.customerId = customerId;
+        this.customer = customer;
         this.total = total;
         this.status = status;
         this.firstName = firstName;
@@ -118,12 +122,12 @@ public class OrderEntity {
         this.id = id;
     }
 
-    public UUID getCustomerId() {
-        return customerId;
+    public CustomerEntity getCustomerId() {
+        return customer;
     }
 
-    public void setCustomerId(UUID customerId) {
-        this.customerId = customerId;
+    public void setCustomerId(CustomerEntity customer) {
+        this.customer = customer;
     }
 
     public double getTotal() {
@@ -270,7 +274,7 @@ public class OrderEntity {
     public Order toDomain() {
         return new Order(
                 this.id,
-                this.customerId,
+                this.customer.toDomain(),
                 this.orderItems.stream()
                         .map(entity -> new OrderItem(entity.getItem().toDomain(), entity.getQuantity()))
                         .toList(),

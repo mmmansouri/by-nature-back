@@ -28,7 +28,6 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<UUID> createItem(@RequestBody ItemCreationRequest itemCreationRequest) {
 
-
         UUID createdItemUUID = itemService.createItem(itemCreationRequest.toDomain());
 
         // Return a 201 Created response with the location of the new Item.

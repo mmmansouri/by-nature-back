@@ -3,6 +3,7 @@ package com.bynature.adapters.in.web.order;
 import com.bynature.adapters.in.web.order.dto.request.OrderCreationRequest;
 import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
 import com.bynature.domain.model.Order;
+import com.bynature.domain.service.CustomerService;
 import com.bynature.domain.service.ItemService;
 import com.bynature.domain.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -22,16 +23,25 @@ public class OrderController {
 
     private final OrderService orderService;
     private final ItemService itemService;
+    private final CustomerService customerService;
 
-    public OrderController(OrderService orderService, ItemService itemService) {
+    public OrderController(OrderService orderService, ItemService itemService, CustomerService customerService) {
         this.orderService = orderService;
         this.itemService = itemService;
+        this.customerService = customerService;
     }
+
+//    Ajouter des tests :
+//       - Ajouter une validation sur les champs du customer et du shippingAddress
+//       - Validation de toutes les exceptions
+//       - Valider StripeController
+//       - Valider tous les JpaAdapters avec plus de scnénarios
+//       - Ajouter plus de scénarios E2E
 
     @PostMapping
     public ResponseEntity<OrderRetrievalResponse> createOrder(@RequestBody OrderCreationRequest orderCreationRequest) {
 
-        UUID createdOrderUUID = orderService.createOrder(orderCreationRequest.toDomain(itemService));
+        UUID createdOrderUUID = orderService.createOrder(orderCreationRequest.toDomain(customerService, itemService));
 
         OrderRetrievalResponse orderRetrievalResponse = OrderRetrievalResponse
                 .fromDomain(orderService.getOrder(createdOrderUUID));
