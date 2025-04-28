@@ -1,6 +1,10 @@
 package com.bynature.domain.model;
 
+import com.bynature.domain.exception.ShippingAddressValidationException;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class ShippingAddress {
@@ -33,6 +37,7 @@ public class ShippingAddress {
         this.country = country;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        validate();
     }
 
     public ShippingAddress(UUID id, String firstName, String lastName, PhoneNumber phoneNumber, Email email, String streetNumber,
@@ -50,6 +55,7 @@ public class ShippingAddress {
         this.country = country;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        validate();
     }
 
     public UUID getId() {
@@ -106,5 +112,36 @@ public class ShippingAddress {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    protected void validate() {
+        record ValidationRule(Object value, String fieldName, boolean isStringField) {}
+
+        var violations = new ArrayList<String>();
+
+        // Using Java 21 record patterns for more elegant validation
+        for (ValidationRule rule : List.of(
+                new ValidationRule(id, "L'ID de l'adresse de livraison", false),
+                new ValidationRule(firstName, "Le prénom", true),
+                new ValidationRule(lastName, "Le nom", true),
+                new ValidationRule(phoneNumber, "Le numéro de téléphone", false),
+                new ValidationRule(email, "L'email", false),
+                new ValidationRule(streetNumber, "Le numéro de rue", true),
+                new ValidationRule(street, "Le nom de rue", true),
+                new ValidationRule(city, "La ville", true),
+                new ValidationRule(region, "La région", true),
+                new ValidationRule(postalCode, "Le code postal", true),
+                new ValidationRule(country, "Le pays", true)
+        )) {
+            if (rule.value == null) {
+                violations.add("%s ne peut pas être null".formatted(rule.fieldName));
+            } else if (rule.isStringField && ((String)rule.value).trim().isEmpty()) {
+                violations.add("%s ne peut pas être vide".formatted(rule.fieldName));
+            }
+        }
+
+        if (!violations.isEmpty()) {
+            throw new ShippingAddressValidationException(violations);
+        }
     }
 }

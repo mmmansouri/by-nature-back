@@ -3,6 +3,7 @@ package com.bynature.domain.repository;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.model.OrderStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository {
@@ -18,4 +19,6 @@ public interface OrderRepository {
     void updateOrderStatus(UUID orderId, OrderStatus status);
 
     void updateOrderStatus(UUID orderId, OrderStatus status, String paymentIntentId);
+
+    List<Order> getOrdersByCustomer(UUID customerId);
 }

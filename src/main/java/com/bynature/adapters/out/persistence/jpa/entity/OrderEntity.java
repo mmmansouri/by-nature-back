@@ -122,11 +122,11 @@ public class OrderEntity {
         this.id = id;
     }
 
-    public CustomerEntity getCustomerId() {
+    public CustomerEntity getCustomer() {
         return customer;
     }
 
-    public void setCustomerId(CustomerEntity customer) {
+    public void setCustomer(CustomerEntity customer) {
         this.customer = customer;
     }
 
@@ -272,7 +272,7 @@ public class OrderEntity {
     }
 
     public Order toDomain() {
-        return new Order(
+        Order order = new Order(
                 this.id,
                 this.customer.toDomain(),
                 this.orderItems.stream()
@@ -292,6 +292,8 @@ public class OrderEntity {
                 this.country,
                 this.createdAt,
                 this.updatedAt);
+        order.setPaymentIntentId(this.paymentIntentId);
+        return order;
     }
 
 }

@@ -3,6 +3,7 @@ package com.bynature.domain.service;
 import com.bynature.domain.model.Order;
 import com.bynature.domain.model.OrderStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrderService {
@@ -12,6 +13,8 @@ public interface OrderService {
     void updateOrder(Order order);
 
     Order getOrder(UUID orderId);
+
+    List<Order> getOrdersByCustomer(UUID customerId);
 
     void deleteOrder(UUID orderId);
 

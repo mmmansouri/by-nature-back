@@ -1,19 +1,22 @@
-package com.bynature.adapters.in.web.stripe;
+package com.bynature.adapters.in.web.payment;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 public class PaymentIntentController {
 
 
 	@PostMapping("/create-payment-intent")
-	public ResponseEntity<String> createPaymentIntent(@RequestBody PaymentIntentRequest paymentIntentRequest)
+	public ResponseEntity<String> createPaymentIntent(@Valid @RequestBody PaymentIntentRequest paymentIntentRequest)
 			throws StripeException {
 		PaymentIntentCreateParams params =
 				PaymentIntentCreateParams.builder()

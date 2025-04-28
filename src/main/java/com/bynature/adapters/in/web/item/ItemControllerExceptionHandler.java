@@ -1,52 +1,54 @@
 package com.bynature.adapters.in.web.item;
 
-import com.bynature.adapters.in.web.BaseExceptionHandler;
+import com.bynature.adapters.in.web.exception.BaseExceptionHandler;
 import com.bynature.domain.exception.ItemNotFoundException;
-import com.bynature.domain.exception.ItemValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.URI;
+import java.util.Map;
 
 @RestControllerAdvice(assignableTypes = {ItemController.class})
+@Order(1) // Higher priority than GlobalExceptionHandler
 public class ItemControllerExceptionHandler extends BaseExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ItemControllerExceptionHandler.class);
-
-    @ExceptionHandler(ItemNotFoundException.class)
-    public ProblemDetail handleItemNotFound(ItemNotFoundException ex) {
-        log.error("Item not found: {}", ex.getMessage());
-
-        ProblemDetail problem = createProblemDetail(
-                HttpStatus.NOT_FOUND,
-                "Item Not Found",
-                ex.getMessage(),
-                URI.create("https://api.bynature.com/errors/items/not-found")
-        );
-
-        if (ex.getItemId() != null) {
-            problem.setProperty("itemId", ex.getItemId());
-        }
-
-        return problem;
+    
+    // Register managed exception types in static initializer
+    static {
+        registerHandledExceptionType(ItemNotFoundException.class);
     }
 
-    @ExceptionHandler(ItemValidationException.class)
-    public ProblemDetail handleItemValidation(ItemValidationException ex) {
-        log.error("Item validation error: {}", ex.getMessage());
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleItemNotFound(ItemNotFoundException ex) {
+        log.error("Item not found: {}", ex.getMessage());
 
-        ProblemDetail problem = createProblemDetail(
-                HttpStatus.BAD_REQUEST,
-                "Item Validation Error",
-                ex.getMessage(),
-                URI.create("https://api.bynature.com/errors/items/validation")
+        var problem = handleException(
+                ex,
+                HttpStatus.NOT_FOUND,
+                "Item Not Found",
+                "items/not-found",
+                exception -> ex.getItemId() != null
+                        ? Map.of("itemId", ex.getItemId())
+                        : Map.of()
         );
-        problem.setProperty("violations", ex.getViolations());
 
-        return problem;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleItemValidationException(MethodArgumentNotValidException ex) {
+        return handleValidationException(
+                ex,
+                "Item Request Validation Failed",
+                "Item request contains invalid data",
+                "items/validation-error"
+        );
     }
 }

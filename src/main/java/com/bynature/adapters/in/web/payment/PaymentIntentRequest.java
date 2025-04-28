@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.stripe;
+package com.bynature.adapters.in.web.payment;
 
 
 import jakarta.validation.constraints.Email;
@@ -32,7 +32,7 @@ public class PaymentIntentRequest {
     @Size(min = 5, max = 200)
     private String productName;
 
-    @NotBlank
+    @NotNull
     private UUID orderId;
 
     public PaymentIntentRequest(Long amount, String email, String productName, UUID orderId, String customerId,

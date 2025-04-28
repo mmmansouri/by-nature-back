@@ -13,6 +13,8 @@ import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.repository.OrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,12 +44,12 @@ public class OrderRepositoryAdapter implements OrderRepository {
     @Override
     @Transactional
     public UUID saveOrder(Order order) {
-        log.debug("Saving order with ID: {} for status", order.getId());
+        log.debug("Saving order with ID: {} for status {}", order.getId(), order.getStatus());
 
         OrderEntity entity = mapToEntity(order);
         OrderEntity savedEntity = orderJpaRepository.save(entity);
 
-        log.info("Order saved with ID: {} for status", order.getId());
+        log.info("Order saved with ID: {} for status {}", order.getId(), order.getStatus());
 
         return savedEntity.getId();
     }
@@ -54,7 +57,7 @@ public class OrderRepositoryAdapter implements OrderRepository {
     @Override
     @Transactional
     public void updateOrder(Order order) {
-        log.debug("Updating order with ID: {} for status", order.getId());
+        log.debug("Updating order with ID: {} for status {}", order.getId(), order.getStatus());
 
         // Verify order exists before updating
         getOrder(order.getId());
@@ -62,7 +65,7 @@ public class OrderRepositoryAdapter implements OrderRepository {
         OrderEntity entity = mapToEntity(order);
         orderJpaRepository.save(entity);
 
-        log.info("Order updated with ID: {} for status", order.getId());
+        log.info("Order updated with ID: {} for status {}", order.getId(), order.getStatus());
     }
 
     @Override
@@ -75,7 +78,15 @@ public class OrderRepositoryAdapter implements OrderRepository {
 
         orderJpaRepository.updateOrderStatus(orderId, status, paymentIntentId, LocalDateTime.now());
 
-        log.info("Order status updated with ID: {} for status {}", orderId,status);
+        log.info("Order status updated with ID: {} for status {} and paymentIntentId {}", orderId,status,paymentIntentId);
+    }
+
+    @Override
+    public List<Order> getOrdersByCustomer(UUID customerId) {
+        return orderJpaRepository.findByCustomerId(customerId)
+                .stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -95,7 +106,7 @@ public class OrderRepositoryAdapter implements OrderRepository {
         Optional<OrderEntity> optionalEntity = orderJpaRepository.findById(orderId);
 
         return optionalEntity.map(this::mapToDomain)
-                .orElseThrow(()->new OrderNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(()->new OrderNotFoundException("Order not found with id: " + orderId, orderId));
     }
 
     @Override
@@ -152,5 +163,24 @@ public class OrderRepositoryAdapter implements OrderRepository {
 
     private Order mapToDomain(OrderEntity entity) {
         return entity.toDomain();
+    }
+
+    public CompletableFuture<List<Order>> getOrdersByCustomerIdAsync(UUID customerId) {
+        return orderJpaRepository.findByCustomerIdAsync(customerId)
+                .thenApply(orders -> orders.stream()
+                        .map(this::mapToDomain)
+                        .collect(Collectors.toList()));
+    }
+
+    public Page<Order> getOrdersByCustomerIdPaginated(UUID customerId, PageRequest pageRequest) {
+        Page<OrderEntity> orderPage = orderJpaRepository.findByCustomer_Id(customerId, pageRequest);
+        return orderPage.map(this::mapToDomain);
+    }
+
+    public List<Order> getOrdersByCustomerAndStatus(UUID customerId, OrderStatus orderStatus) {
+        List<OrderEntity> orderEntities = orderJpaRepository.findByCustomer_IdAndStatus(customerId, orderStatus);
+        return orderEntities.stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
     }
 }

@@ -34,7 +34,7 @@ public class ItemRepositoryAdapter implements ItemRepository {
         // Save using Spring Data JPA repository
         ItemEntity savedEntity = itemJpaRepository.save(entity);
 
-        log.info("Item item with ID: {} for status", item.getId());
+        log.info("Item saved with ID: {} for status", item.getId());
 
         return savedEntity.getId();
     }
@@ -51,7 +51,7 @@ public class ItemRepositoryAdapter implements ItemRepository {
     }
 
     @Override
-    public Item getItem(UUID itemId) {
+    public Item getItem(UUID itemId) throws ItemNotFoundException {
         log.debug("Fetching item with ID: {}", itemId);
         // Retrieve the entity and map back to the domain model
         Optional<ItemEntity> optionalEntity = itemJpaRepository.findById(itemId);

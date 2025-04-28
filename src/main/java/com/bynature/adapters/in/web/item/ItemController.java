@@ -2,6 +2,7 @@ package com.bynature.adapters.in.web.item;
 
 import com.bynature.domain.model.Item;
 import com.bynature.domain.service.ItemService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +27,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<UUID> createItem(@RequestBody ItemCreationRequest itemCreationRequest) {
+    public ResponseEntity<UUID> createItem(@Valid  @RequestBody ItemCreationRequest itemCreationRequest) {
 
         UUID createdItemUUID = itemService.createItem(itemCreationRequest.toDomain());
 

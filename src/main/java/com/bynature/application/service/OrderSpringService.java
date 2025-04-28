@@ -7,6 +7,7 @@ import com.bynature.domain.service.OrderService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,6 +38,11 @@ public class OrderSpringService implements OrderService {
 
     public Order getOrder(UUID orderId) {
         return orderRepository.getOrder(orderId);
+    }
+
+    @Override
+    public List<Order> getOrdersByCustomer(UUID customerId) {
+        return orderRepository.getOrdersByCustomer(customerId);
     }
 
     public void deleteOrder(UUID orderId) {

@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.stripe;
+package com.bynature.adapters.in.web.payment;
 
 import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.service.OrderService;
@@ -8,7 +8,6 @@ import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
-import com.stripe.net.Webhook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,9 +27,11 @@ public class StripeWebhookController {
     private String endpointSecret;
 
     private final OrderService orderService;
+    private final StripeWebhookVerifier webhookVerifier;
 
-    public StripeWebhookController(OrderService orderService) {
+    public StripeWebhookController(OrderService orderService, StripeWebhookVerifier webhookVerifier) {
         this.orderService = orderService;
+        this.webhookVerifier = webhookVerifier;
     }
 
     @PostMapping("/webhook/stripe")
@@ -41,7 +42,7 @@ public class StripeWebhookController {
         Event event;
 
         try {
-            event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
+            event = webhookVerifier.verifyAndParseEvent(payload, sigHeader, endpointSecret);
         } catch (SignatureVerificationException e) {
             logger.warning("Signature invalide: " + e.getMessage());
             return ResponseEntity.badRequest().body("Signature invalide");

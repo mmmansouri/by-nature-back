@@ -1,8 +1,6 @@
-package com.bynature.adapters.in.web;
+package com.bynature.adapters.in.web.item;
 
 import com.bynature.AbstractByNatureTest;
-import com.bynature.adapters.in.web.item.ItemCreationRequest;
-import com.bynature.adapters.in.web.item.ItemRetrievalResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +8,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -30,10 +29,10 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
                 "Test Item",
                 "Test Description",
                 99.99,
-                "test-image.jpg"
+                "http://test-image.jpg"
         );
 
-        // Création de l'article
+        // Création de l'article - expect UUID response rather than ItemRetrievalResponse
         ResponseEntity<UUID> createResponse = restTemplate.postForEntity(
                 "/items",
                 request,
@@ -88,5 +87,28 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
 
         // Vérification
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void whenCreateInvalidItem_thenReturnValidationError_E2E() {
+        // Create an invalid item (missing required fields)
+        ItemCreationRequest invalidRequest = new ItemCreationRequest(
+                "",  // Empty name (invalid)
+                null, // Missing description (invalid)
+                -10.0, // Negative price (invalid)
+                ""  // Empty image URL (invalid)
+        );
+
+        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+                "/items",
+                invalidRequest,
+                ProblemDetail.class
+        );
+
+        // Verify validation error response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTitle()).isEqualTo("Item Request Validation Failed");
+        assertThat(response.getBody().getProperties()).containsKey("validationErrors");
     }
 }

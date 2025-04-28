@@ -1,4 +1,4 @@
-package com.bynature.adapters.in.web.stripe;
+package com.bynature.adapters.in.web.payment;
 
 public enum StripeEvent {
     PAYMENT_INTENT_CREATED("payment_intent.created"),
