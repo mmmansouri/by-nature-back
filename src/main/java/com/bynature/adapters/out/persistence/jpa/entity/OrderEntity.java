@@ -18,7 +18,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -36,57 +39,71 @@ public class OrderEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+    @NotNull(message = "Customer cannot be null")
     private CustomerEntity customer;
 
     @Column(nullable = false)
+    @Min(value = 0, message = "Total must be greater than 0")
     private double total;
 
     @Enumerated(EnumType.STRING)
     @JdbcType(value = PostgreSQLEnumJdbcType.class)
+    @NotNull(message = "Order status cannot be null")
     private OrderStatus status;
-
 
     @Column(name = "payment_intent_id")
     private String paymentIntentId;
 
     @Column(nullable = false)
+    @NotBlank(message = "First name cannot be empty")
     private String firstName;
 
     @Column(nullable = false)
+    @NotBlank(message = "Last name name cannot be empty")
     private String lastName;
 
     @Column(nullable = false)
+    @NotBlank(message = "Phone number name cannot be empty")
     private String phoneNumber;
 
     @Column(nullable = false)
+    @NotBlank(message = "Email name cannot be empty")
     private String email;
 
     @Column(nullable = false)
+    @NotBlank(message = "Street number name cannot be empty")
     private String streetNumber;
 
     @Column(nullable = false)
+    @NotBlank(message = "Street name cannot be empty")
     private String street;
 
     @Column(nullable = false)
+    @NotBlank(message = "City name cannot be empty")
     private String city;
 
     @Column(nullable = false)
+    @NotBlank(message = "Region name cannot be empty")
     private String region;
 
     @Column(nullable = false)
+    @NotBlank(message = "Postal code name cannot be empty")
     private String postalCode;
 
     @Column(nullable = false)
+    @NotBlank(message = "Country name cannot be empty")
     private String country;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @NotEmpty()
+    @NotEmpty(message = "Order must contain at least one item")
     private List<OrderItemEntity> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
+    @NotNull(message = "Created date cannot be null")
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
+    @NotNull(message = "Updated date cannot be null")
     private LocalDateTime updatedAt;
 
     public OrderEntity(UUID id, CustomerEntity customer, double total, OrderStatus status, String firstName, String lastName, String phoneNumber, String email, String streetNumber, String street, String city, String region, String postalCode, String country, LocalDateTime createdAt, LocalDateTime updatedAt) {

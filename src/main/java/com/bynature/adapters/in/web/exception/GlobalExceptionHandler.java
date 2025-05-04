@@ -57,15 +57,15 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     }
 
     @ExceptionHandler(ByNatureValidationException.class)
-    public ResponseEntity<ProblemDetail> handleOrderValidation(ByNatureValidationException ex) {
-        log.error("Order validation error: {}", ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleValidation(ByNatureValidationException ex) {
+        log.error("Data validation error: {}", ex.getMessage());
 
         var problem = handleException(
                 ex,
                 HttpStatus.BAD_REQUEST,
                 "Order Validation Error",
                 "orders/validation",
-                exception -> Map.of("violations", ex.getViolations())
+                exception -> Map.of("validationErrors", ex.getViolations())
         );
 
         return ResponseEntity.badRequest().body(problem);

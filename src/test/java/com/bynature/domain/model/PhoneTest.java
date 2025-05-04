@@ -1,5 +1,6 @@
 package com.bynature.domain.model;
 
+import com.bynature.domain.exception.PhoneValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,7 +38,7 @@ class PhoneTest {
     @ValueSource(strings = {" ", "\t", "\n"})
     @DisplayName("Should throw exception when phone number is null or blank")
     void shouldThrowExceptionWhenPhoneNumberIsNullOrBlank(String invalidNumber) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
+        assertThatExceptionOfType(PhoneValidationException.class)
                 .isThrownBy(() -> new PhoneNumber(invalidNumber));
     }
 
@@ -50,7 +51,7 @@ class PhoneTest {
     })
     @DisplayName("Should throw exception when phone number format is invalid")
     void shouldThrowExceptionWhenPhoneNumberFormatIsInvalid(String invalidNumber) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
+        assertThatExceptionOfType(PhoneValidationException.class)
                 .isThrownBy(() -> new PhoneNumber(invalidNumber));
     }
 }

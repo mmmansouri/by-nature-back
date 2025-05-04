@@ -33,12 +33,6 @@ public class OrderController {
         this.customerService = customerService;
     }
 
-   /* TODO:
-        Ajouter des tests :
-       - Valider PaymentController, StripeController
-       - Valider tous les JpaAdapters avec plus de scnénarios
-       - Ajouter plus de scénarios E2E*/
-
     @PostMapping
     public ResponseEntity<OrderRetrievalResponse> createOrder(@Valid @RequestBody OrderCreationRequest orderCreationRequest) {
 

@@ -6,7 +6,6 @@ import com.bynature.adapters.in.web.order.dto.request.OrderItemCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.ShippingAddressCreationRequest;
 import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
 import com.bynature.domain.model.OrderStatus;
-import com.bynature.domain.service.OrderService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import org.json.JSONException;
@@ -41,9 +40,6 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-
-    @Autowired
-    private OrderService orderService;
 
     @MockitoBean
     private StripeWebhookVerifier webhookVerifier;
@@ -379,7 +375,7 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
     }
 
     private static ShippingAddressCreationRequest createValidShippingAddress() {
-        return new ShippingAddressCreationRequest(
+        return new ShippingAddressCreationRequest(VALID_CUSTOMER_ID, "My Address",
                 "John", "Doe",
                 "+33634164387",
                 "valid@example.com",

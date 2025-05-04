@@ -9,62 +9,91 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
+@Valid
 public class CustomerEntity {
 
     @Id
+    @NotNull(message = "Customer ID cannot be null")
     private UUID id;
 
     @Column(name = "first_name", nullable = false)
-    @NotNull
+    @NotBlank(message = "First name cannot be empty")
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
-    @NotNull
+    @NotBlank(message = "Last name cannot be empty")
     private String lastName;
 
     @Column(nullable = false)
-    @NotNull
+    @NotBlank(message = "Email cannot be empty")
     private String email;
 
     @Column(name = "phone_number", nullable = false)
-    @NotNull
+    @NotBlank(message = "Phone number cannot be empty")
     private String phoneNumber;
 
     @Column(name = "street_number")
+    @NotBlank(message = "Street number number cannot be empty")
     private String streetNumber;
 
     @Column
+    @NotBlank(message = "Street name cannot be empty")
     private String street;
 
     @Column
+    @NotBlank(message = "City number cannot be empty")
     private String city;
 
     @Column
+    @NotBlank(message = "Region number cannot be empty")
     private String region;
 
     @Column(name = "postal_code")
+    @NotBlank(message = "Postal code number cannot be empty")
     private String postalCode;
 
     @Column
+    @NotBlank(message = "Country number cannot be empty")
     private String country;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<OrderEntity> orders = new ArrayList<>();
 
+    @Column(nullable = false)
+    @NotNull(message = "Created date cannot be null")
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @NotNull(message = "Updated date cannot be null")
+    private LocalDateTime updatedAt;
+
     public CustomerEntity() {
     }
 
-    public CustomerEntity(UUID id, String firstName, String lastName, String email, String phoneNumber,
-                          String streetNumber, String street, String city, String region,
-                          String postalCode, String country) {
+    public CustomerEntity(UUID id,
+                          String firstName,
+                          String lastName,
+                          String email,
+                          String phoneNumber,
+                          String streetNumber,
+                          String street,
+                          String city,
+                          String region,
+                          String postalCode,
+                          String country,
+                          LocalDateTime createdAt,
+                          LocalDateTime updatedAt) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -76,6 +105,8 @@ public class CustomerEntity {
         this.region = region;
         this.postalCode = postalCode;
         this.country = country;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public UUID getId() {
@@ -180,7 +211,9 @@ public class CustomerEntity {
                 this.firstName,
                 this.lastName,
                 new Email(this.email),
-                new PhoneNumber(this.phoneNumber)
+                new PhoneNumber(this.phoneNumber),
+                this.createdAt,
+                this.updatedAt
         );
 
         customer.setStreetNumber(this.streetNumber);
@@ -204,7 +237,8 @@ public class CustomerEntity {
                 customer.getCity(),
                 customer.getRegion(),
                 customer.getPostalCode(),
-                customer.getCountry()
-        );
+                customer.getCountry(),
+                customer.getCreatedAt(),
+                customer.getUpdatedAt());
     }
 }

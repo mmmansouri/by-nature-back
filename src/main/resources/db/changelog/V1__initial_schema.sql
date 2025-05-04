@@ -52,6 +52,8 @@ create table orders
 create table shipping_addresses
 (
     id            uuid         not null,
+    customer_id   uuid         not null,
+    label    varchar(255) not null,
     first_name    varchar(255) not null,
     last_name     varchar(255) not null,
     email         varchar(255) not null,
@@ -80,6 +82,8 @@ create table customers
     region        varchar(255),
     postal_code   varchar(255),
     country       varchar(255),
+    created_at    timestamp(6) not null,
+    updated_at    timestamp(6) not null,
     primary key (id)
 );
 
@@ -89,3 +93,5 @@ alter table if exists order_items
     add constraint FKbioxgbv59vetrxe0ejfubep1w foreign key (order_id) references orders;
 alter table if exists orders
     add constraint FK_orders_customer foreign key (customer_id) references customers;
+alter table if exists shipping_addresses
+    add constraint FK_shipping_addresses_customer foreign key (customer_id) references customers;

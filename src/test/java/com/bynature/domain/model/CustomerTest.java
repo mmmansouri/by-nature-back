@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +42,14 @@ class CustomerTest {
         @Test
         @DisplayName("Should create customer with provided ID")
         void shouldCreateCustomerWithProvidedId() {
-            var customer = new Customer(validId, validFirstName, validLastName, validEmail, validPhone);
+            var customer = new Customer(validId,
+                    validFirstName,
+                    validLastName,
+                    validEmail,
+                    validPhone,
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
+                    );
             customer.validate();
 
             assertThat(customer.getId()).isEqualTo(validId);
@@ -56,7 +64,13 @@ class CustomerTest {
         void shouldThrowExceptionWhenIdIsNull() {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
-                        Customer invalidCustomer = new Customer(null, validFirstName, validLastName, validEmail, validPhone);
+                        Customer invalidCustomer = new Customer(null,
+                                validFirstName,
+                                validLastName,
+                                validEmail,
+                                validPhone,
+                                LocalDateTime.now(),
+                                LocalDateTime.now());
                         invalidCustomer.validate();
                     })
                     .satisfies(e -> assertThat(e.getViolations()).contains("L'ID du client ne peut pas être null"));
@@ -199,5 +213,126 @@ class CustomerTest {
             assertThat(customer.getPostalCode()).isEqualTo("75001");
             assertThat(customer.getCountry()).isEqualTo("France");
         }
+
+        @Test
+        @DisplayName("Should create customer with complete address")
+        void shouldCreateCustomerWithCompleteAddress() {
+            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+            // Set address fields
+            customer.setStreetNumber("42");
+            customer.setStreet("Rue de Paris");
+            customer.setCity("Lyon");
+            customer.setRegion("Rhône-Alpes");
+            customer.setPostalCode("69001");
+            customer.setCountry("France");
+
+            // Verify all fields are set correctly
+            assertThat(customer.getStreetNumber()).isEqualTo("42");
+            assertThat(customer.getStreet()).isEqualTo("Rue de Paris");
+            assertThat(customer.getCity()).isEqualTo("Lyon");
+            assertThat(customer.getRegion()).isEqualTo("Rhône-Alpes");
+            assertThat(customer.getPostalCode()).isEqualTo("69001");
+            assertThat(customer.getCountry()).isEqualTo("France");
+        }
+
+        @Test
+        @DisplayName("Should update address fields correctly")
+        void shouldUpdateAddressFieldsCorrectly() {
+            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+            // Set initial address
+            customer.setStreetNumber("10");
+            customer.setStreet("Old Street");
+            customer.setCity("Old City");
+            customer.setRegion("Old Region");
+            customer.setPostalCode("00000");
+            customer.setCountry("Old Country");
+
+            // Update all address fields
+            LocalDateTime beforeUpdate = LocalDateTime.now();
+            customer.setStreetNumber("42");
+            customer.setStreet("New Street");
+            customer.setCity("New City");
+            customer.setRegion("New Region");
+            customer.setPostalCode("12345");
+            customer.setCountry("New Country");
+            customer.setUpdatedAt(LocalDateTime.now());
+
+            // Verify fields are updated
+            assertThat(customer.getStreetNumber()).isEqualTo("42");
+            assertThat(customer.getStreet()).isEqualTo("New Street");
+            assertThat(customer.getCity()).isEqualTo("New City");
+            assertThat(customer.getRegion()).isEqualTo("New Region");
+            assertThat(customer.getPostalCode()).isEqualTo("12345");
+            assertThat(customer.getCountry()).isEqualTo("New Country");
+            assertThat(customer.getUpdatedAt()).isAfterOrEqualTo(beforeUpdate);
+        }
+
+        @Test
+        @DisplayName("Should validate all address fields when updating")
+        void shouldValidateAllAddressFieldsWhenUpdating() {
+            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+            // Test each validation separately
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setStreetNumber("  "));
+
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setStreet(""));
+
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setCity("\t"));
+
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setRegion("\n"));
+
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setPostalCode(" "));
+
+            assertThatExceptionOfType(CustomerValidationException.class)
+                    .isThrownBy(() -> customer.setCountry(""));
+        }
+    }
+
+    @Test
+    @DisplayName("Should have updatedAt equal to createdAt upon initial creation")
+    void shouldHaveUpdatedAtEqualToCreatedAtUponInitialCreation() {
+        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+        assertThat(customer.getUpdatedAt()).isEqualTo(customer.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be equal to createdAt")
+    void shouldAllowUpdatedAtToBeEqualToCreatedAt() {
+        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+        assertDoesNotThrow(() -> {
+            customer.setUpdatedAt(customer.getCreatedAt());
+        });
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be after createdAt")
+    void shouldAllowUpdatedAtToBeAfterCreatedAt() {
+        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+        assertDoesNotThrow(() -> {
+            customer.setUpdatedAt(customer.getCreatedAt().plusSeconds(1));
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject updatedAt before createdAt")
+    void shouldRejectUpdatedAtBeforeCreatedAt() {
+        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+
+        assertThatExceptionOfType(CustomerValidationException.class)
+                .isThrownBy(() -> {
+                    customer.setUpdatedAt(customer.getCreatedAt().minusSeconds(1));
+                })
+                .satisfies(e -> assertThat(e.getViolations())
+                        .contains("La date de mise à jour ne peut pas être avant celle de la création"));
     }
 }

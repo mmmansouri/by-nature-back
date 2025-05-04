@@ -2,6 +2,7 @@ package com.bynature.domain.model;
 
 import com.bynature.domain.exception.CustomerValidationException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +19,15 @@ public class Customer {
     private String region;
     private String postalCode;
     private String country;
+    private final LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public Customer(String firstName, String lastName, Email email, PhoneNumber phoneNumber) {
+    public Customer(String firstName,
+                    String lastName,
+                    Email email,
+                    PhoneNumber phoneNumber) {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
         this.id = UUID.randomUUID();
         this.firstName = firstName;
         this.lastName = lastName;
@@ -29,12 +37,37 @@ public class Customer {
         this.validate();
     }
 
-    public Customer(UUID customerId, String firstName, String lastName, Email email, PhoneNumber phoneNumber) {
+    public Customer(UUID customerId,
+                    String firstName,
+                    String lastName,
+                    Email email,
+                    PhoneNumber phoneNumber,
+                    LocalDateTime createdAt) {
         this.id = customerId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.updatedAt = LocalDateTime.now();
+        this.createdAt = createdAt;
+
+        this.validate();
+    }
+
+    public Customer(UUID customerId,
+                    String firstName,
+                    String lastName,
+                    Email email,
+                    PhoneNumber phoneNumber,
+                    LocalDateTime createdAt,
+                    LocalDateTime updatedAt) {
+        this.id = customerId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.updatedAt = updatedAt;
+        this.createdAt = createdAt;
 
         this.validate();
     }
@@ -83,6 +116,19 @@ public class Customer {
         return country;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+        this.validate();
+    }
+
     protected void validate() {
         var violations = new ArrayList<String>();
 
@@ -129,6 +175,13 @@ public class Customer {
 
         if (country != null && country.trim().isEmpty()) {
             violations.add("Le pays ne peut pas être vide s'il est spécifié");
+        }
+        if( createdAt == null) {
+            violations.add("La date de création ne peut pas être null");
+        }
+
+        if(updatedAt !=null && createdAt!=null && updatedAt.isBefore(createdAt)) {
+            violations.add("La date de mise à jour ne peut pas être avant celle de la création");
         }
 
         if (!violations.isEmpty()) {

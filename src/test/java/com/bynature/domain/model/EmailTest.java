@@ -43,7 +43,7 @@ class EmailTest {
     @ValueSource(strings = {" ", "\t", "\n"})
     @DisplayName("Should throw exception when email is null or blank")
     void shouldThrowExceptionWhenEmailIsNullOrBlank(String invalidEmail) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
+        assertThatExceptionOfType(EmailValidationException.class)
                 .isThrownBy(() -> new Email(invalidEmail))
                 .withMessageContaining("Email address cannot be null or blank");
     }

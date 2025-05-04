@@ -7,7 +7,7 @@ import com.bynature.domain.model.Order;
 import java.util.List;
 import java.util.UUID;
 
-public record OrderRetrievalResponse(UUID id, UUID customer, List<OrderItemRetrievalResponse> orderItems,
+public record OrderRetrievalResponse(UUID id, UUID customerId, List<OrderItemRetrievalResponse> orderItems,
                                      double total,
                                      String status, ShippingAddressRetrievalResponse shippingAddress) {
 

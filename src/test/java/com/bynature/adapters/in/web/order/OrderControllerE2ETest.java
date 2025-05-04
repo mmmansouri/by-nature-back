@@ -5,7 +5,6 @@ import com.bynature.adapters.in.web.order.dto.request.OrderCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.OrderItemCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.ShippingAddressCreationRequest;
 import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
-import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
 import com.bynature.domain.model.OrderStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,9 +34,6 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private ItemRepositoryAdapter itemRepositoryAdapter;
-
     // Valid UUID constants for testing
     private static final UUID VALID_CUSTOMER_ID = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
     private static final UUID VALID_ITEM_ID = UUID.fromString("4ad102fd-bf4a-439f-8027-5c3cf527ffaf");
@@ -45,7 +41,10 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
     @Test
     public void whenCreateOrder_shouldRetrieveIT_E2E() {
         // Prepare a sample ShippingAddressRequest.
-        ShippingAddressCreationRequest addressRequest = new ShippingAddressCreationRequest("Mohamed", "Mohamed",
+        ShippingAddressCreationRequest addressRequest = new ShippingAddressCreationRequest(
+                VALID_CUSTOMER_ID,
+                "My Address",
+                "Mohamed", "Mohamed",
                 "+33634164387",
                 "toto@gmail.com",
                 "123", "Avenue de la redoute",
@@ -87,7 +86,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         OrderRetrievalResponse orderRetrievalResponse = responseOrder.getBody();
         assertThat(orderRetrievalResponse).isNotNull();
         assertThat(orderRetrievalResponse.id()).isEqualTo(orderResponse.id());
-        assertThat(orderRetrievalResponse.customer()).isEqualTo(orderCreationRequest.customerId());
+        assertThat(orderRetrievalResponse.customerId()).isEqualTo(orderCreationRequest.customerId());
         assertThat(orderRetrievalResponse.total()).isEqualTo(orderCreationRequest.total());
         assertThat(orderRetrievalResponse.status()).isEqualTo(OrderStatus.CREATED.toString());
         assertThat(orderRetrievalResponse.shippingAddress()).isNotNull();
@@ -181,7 +180,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
                     VALID_CUSTOMER_ID,
                     List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
                     100.0,
-                    new ShippingAddressCreationRequest(
+                    new ShippingAddressCreationRequest(VALID_CUSTOMER_ID, "My Address",
                         "John", "Doe", "+33634164387", "invalid-email",
                         "123", "Main Street", "Paris", "Ile-de-France",
                         "75001", "France"
@@ -239,7 +238,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         
         // All returned orders should belong to our customer
         for (OrderRetrievalResponse order : orders) {
-            assertThat(order.customer()).isEqualTo(VALID_CUSTOMER_ID);
+            assertThat(order.customerId()).isEqualTo(VALID_CUSTOMER_ID);
         }
     }
 
@@ -251,7 +250,7 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
     }
     
     private static ShippingAddressCreationRequest createValidShippingAddress() {
-        return new ShippingAddressCreationRequest(
+        return new ShippingAddressCreationRequest(VALID_CUSTOMER_ID,"My Address",
                 "John", "Doe",
                 "+33634164387",
                 "valid@example.com",

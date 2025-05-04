@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +56,8 @@ public class CustomerJpaAdapterTest extends AbstractByNatureTest {
         // Arrange
         Customer customer = new Customer("Jane", "Smith", new Email("jane.smith@example.com"),
                 new PhoneNumber("+33623456789"));
-        customerRepositoryAdapter.saveCustomer(customer);
+        UUID savedCustomerId = customerRepositoryAdapter.saveCustomer(customer);
+        Customer savedCustomer = customerRepositoryAdapter.getCustomer(savedCustomerId);
 
         // Create a new customer with the same ID but updated fields
         Customer updatedCustomer = new Customer(
@@ -63,8 +65,7 @@ public class CustomerJpaAdapterTest extends AbstractByNatureTest {
                 "Jane",
                 "Doe",
                 new Email("jane.doe@example.com"),
-                new PhoneNumber("+33623456789")
-        );
+                new PhoneNumber("+33623456789"), savedCustomer.getCreatedAt());
         updatedCustomer.setCity("Paris");
         updatedCustomer.setStreet("Rue de la Paix");
         updatedCustomer.setStreetNumber("42");
@@ -126,7 +127,8 @@ public class CustomerJpaAdapterTest extends AbstractByNatureTest {
                 "Nonexistent",
                 "Customer",
                 new Email("nonexistent@example.com"),
-                new PhoneNumber("+33645678901")
+                new PhoneNumber("+33645678901"),
+                LocalDateTime.now()
         );
 
         // Act & Assert

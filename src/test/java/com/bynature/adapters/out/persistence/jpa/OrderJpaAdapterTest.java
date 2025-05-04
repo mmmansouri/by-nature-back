@@ -1,6 +1,7 @@
 package com.bynature.adapters.out.persistence.jpa;
 
 import com.bynature.AbstractByNatureTest;
+import com.bynature.adapters.out.persistence.jpa.adapter.CustomerRepositoryAdapter;
 import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
 import com.bynature.adapters.out.persistence.jpa.adapter.OrderRepositoryAdapter;
 import com.bynature.domain.exception.OrderNotFoundException;
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,10 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 @EnableAutoConfiguration
-@ContextConfiguration(classes = {OrderRepositoryAdapter.class, ItemRepositoryAdapter.class})
+@ContextConfiguration(classes = {OrderRepositoryAdapter.class, ItemRepositoryAdapter.class, CustomerRepositoryAdapter.class})
 public class OrderJpaAdapterTest extends AbstractByNatureTest {
 
-
+    @Autowired
+    CustomerRepositoryAdapter customerRepositoryAdapter;
 
     @Autowired
     private OrderRepositoryAdapter orderRepositoryAdapter;
@@ -57,15 +58,7 @@ public class OrderJpaAdapterTest extends AbstractByNatureTest {
         orderItems = List.of(new OrderItem(item1, 2), new OrderItem(item2, 3));
 
         // Create test customer
-        customer = new Customer(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
-                "John", "Doe", new Email("john.doe@example.com"),
-                new PhoneNumber("+33612345678"));
-        customer.setCity("Paris");
-        customer.setStreet("Rue de la Paix");
-        customer.setStreetNumber("42");
-        customer.setRegion("Île-de-France");
-        customer.setPostalCode("75001");
-        customer.setCountry("France");
+        customer = customerRepositoryAdapter.getCustomer(UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
     }
 
     @Test

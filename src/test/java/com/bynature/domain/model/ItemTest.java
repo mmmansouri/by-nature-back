@@ -14,6 +14,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class ItemTest {
 
@@ -143,5 +144,47 @@ class ItemTest {
         assertThat(item.getUpdatedAt())
                 .isNotEqualTo(initialUpdatedAt)
                 .isEqualTo(newTime);
+    }
+
+
+    @Test
+    @DisplayName("Should have updatedAt equal to createdAt upon initial creation")
+    void shouldHaveUpdatedAtEqualToCreatedAtUponInitialCreation() {
+        var item = new Item(validName, validDescription, validPrice, validImageUrl);
+
+        assertThat(item.getUpdatedAt()).isEqualTo(item.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be equal to createdAt")
+    void shouldAllowUpdatedAtToBeEqualToCreatedAt() {
+        var item = new Item(validName, validDescription, validPrice, validImageUrl);
+
+        assertDoesNotThrow(() -> {
+            item.setUpdatedAt(item.getCreatedAt());
+        });
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be after createdAt")
+    void shouldAllowUpdatedAtToBeAfterCreatedAt() {
+        var item = new Item(validName, validDescription, validPrice, validImageUrl);
+
+        assertDoesNotThrow(() -> {
+            item.setUpdatedAt(item.getCreatedAt().plusSeconds(1));
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject updatedAt before createdAt")
+    void shouldRejectUpdatedAtBeforeCreatedAt() {
+        var item = new Item(validName, validDescription, validPrice, validImageUrl);
+
+        assertThatExceptionOfType(ItemValidationException.class)
+                .isThrownBy(() -> {
+                    item.setUpdatedAt(item.getCreatedAt().minusSeconds(1));
+                })
+                .satisfies(e -> assertThat(e.getViolations())
+                        .contains("La date de mise à jour ne peut pas être avant celle de la création"));
     }
 }

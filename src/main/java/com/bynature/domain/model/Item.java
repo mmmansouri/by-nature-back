@@ -70,6 +70,7 @@ public class Item {
 
     public void setUpdatedAt(LocalDateTime now) {
         this.updatedAt = now;
+        this.validate();
     }
 
     protected void validate() {
@@ -97,6 +98,14 @@ public class Item {
         }
         if (imageUrl == null || imageUrl.isBlank()) {
             violations.add("Item image URL cannot be null or empty");
+        }
+
+        if(createdAt == null) {
+            violations.add("La date de création ne peut pas être null");
+        }
+
+        if(updatedAt !=null && createdAt!=null && updatedAt.isBefore(createdAt)) {
+            violations.add("La date de mise à jour ne peut pas être avant celle de la création");
         }
 
         if (!violations.isEmpty()) {

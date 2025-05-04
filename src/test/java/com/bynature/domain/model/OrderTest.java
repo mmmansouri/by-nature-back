@@ -126,4 +126,61 @@ class OrderTest {
                 .satisfies(e -> assertThat(e.getViolations())
                         .contains("Le total doit être positif"));
     }
+
+    @Test
+    @DisplayName("Should have updatedAt equal to createdAt upon initial creation")
+    void shouldHaveUpdatedAtEqualToCreatedAtUponInitialCreation() {
+        var order = new Order(
+                validCustomer, validOrderItems, 200.0,
+                "John", "Doe", validPhone, validEmail,
+                "123", "Main Street", "Paris", "Île-de-France",
+                "75001", "France");
+
+        assertThat(order.getUpdatedAt()).isEqualTo(order.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be equal to createdAt")
+    void shouldAllowUpdatedAtToBeEqualToCreatedAt() {
+        var order = new Order(
+                validCustomer, validOrderItems, 200.0,
+                "John", "Doe", validPhone, validEmail,
+                "123", "Main Street", "Paris", "Île-de-France",
+                "75001", "France");
+
+        assertDoesNotThrow(() -> {
+            order.setUpdatedAt(order.getCreatedAt());
+        });
+    }
+
+    @Test
+    @DisplayName("Should allow updatedAt to be after createdAt")
+    void shouldAllowUpdatedAtToBeAfterCreatedAt() {
+        var order = new Order(
+                validCustomer, validOrderItems, 200.0,
+                "John", "Doe", validPhone, validEmail,
+                "123", "Main Street", "Paris", "Île-de-France",
+                "75001", "France");
+
+        assertDoesNotThrow(() -> {
+            order.setUpdatedAt(order.getCreatedAt().plusSeconds(1));
+        });
+    }
+
+    @Test
+    @DisplayName("Should reject updatedAt before createdAt")
+    void shouldRejectUpdatedAtBeforeCreatedAt() {
+        var order = new Order(
+                validCustomer, validOrderItems, 200.0,
+                "John", "Doe", validPhone, validEmail,
+                "123", "Main Street", "Paris", "Île-de-France",
+                "75001", "France");
+
+        assertThatExceptionOfType(OrderValidationException.class)
+                .isThrownBy(() -> {
+                    order.setUpdatedAt(order.getCreatedAt().minusSeconds(1));
+                })
+                .satisfies(e -> assertThat(e.getViolations())
+                        .contains("La date de mise à jour ne peut pas être avant celle de la création"));
+    }
 }

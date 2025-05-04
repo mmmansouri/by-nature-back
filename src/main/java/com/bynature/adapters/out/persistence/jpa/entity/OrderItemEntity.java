@@ -8,9 +8,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
 
 @Entity
 @Table(name = "order_items")
+@Valid
 public class OrderItemEntity {
     @EmbeddedId
     private OrderItemId id;

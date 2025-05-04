@@ -146,11 +146,13 @@ public class Order {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+        this.validate();
     }
 
     public void updateStatus(OrderStatus status) {
         this.status = status;
         this.updatedAt = LocalDateTime.now();
+        this.validate();
     }
 
     public String getPaymentIntentId() {
@@ -160,6 +162,7 @@ public class Order {
     public void setPaymentIntentId(String paymentIntentId) {
         this.paymentIntentId = paymentIntentId;
         this.updatedAt = LocalDateTime.now();
+        this.validate();
     }
 
     protected void validate() {
@@ -224,6 +227,15 @@ public class Order {
         if (status == null) {
             violations.add("Le statut ne peut pas être vide");
         }
+
+        if( createdAt == null) {
+            violations.add("La date de création ne peut pas être null");
+        }
+
+        if(updatedAt !=null && createdAt!=null && updatedAt.isBefore(createdAt)) {
+            violations.add("La date de mise à jour ne peut pas être avant celle de la création");
+        }
+
 
         if (!violations.isEmpty()) {
             throw new OrderValidationException(violations);
