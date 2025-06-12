@@ -9,11 +9,13 @@ import java.util.UUID;
 
 public class Customer {
     private final UUID id;
+    private User user;
     private final String firstName;
     private final String lastName;
     private final Email email;
     private final PhoneNumber phoneNumber;
     private String streetNumber;
+
     private String street;
     private String city;
     private String region;
@@ -22,10 +24,18 @@ public class Customer {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Customer(String firstName,
+    public Customer(User user,
+                    String firstName,
                     String lastName,
                     Email email,
-                    PhoneNumber phoneNumber) {
+                    PhoneNumber phoneNumber,
+                    String streetNumber,
+                    String street,
+                    String city,
+                    String region,
+                    String postalCode,
+                    String country) {
+        this.user = user;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
         this.id = UUID.randomUUID();
@@ -33,16 +43,31 @@ public class Customer {
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.streetNumber = streetNumber;
+        this.street = street;
+        this.city = city;
+        this.region = region;
+        this.postalCode = postalCode;
+        this.country = country;
 
         this.validate();
     }
 
     public Customer(UUID customerId,
+                    User user,
                     String firstName,
                     String lastName,
                     Email email,
                     PhoneNumber phoneNumber,
-                    LocalDateTime createdAt) {
+                    LocalDateTime createdAt,
+                    String streetNumber,
+                    String street,
+                    String city,
+                    String region,
+                    String postalCode,
+                    String country
+                    ) {
+        this.user = user;
         this.id = customerId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -50,17 +75,26 @@ public class Customer {
         this.phoneNumber = phoneNumber;
         this.updatedAt = LocalDateTime.now();
         this.createdAt = createdAt;
+        this.streetNumber = streetNumber;
+        this.street = street;
+        this.city = city;
+        this.region = region;
+        this.postalCode = postalCode;
+        this.country = country;
+
 
         this.validate();
     }
 
     public Customer(UUID customerId,
+                    User user,
                     String firstName,
                     String lastName,
                     Email email,
                     PhoneNumber phoneNumber,
                     LocalDateTime createdAt,
                     LocalDateTime updatedAt) {
+        this.user = user;
         this.id = customerId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -74,6 +108,15 @@ public class Customer {
 
     public UUID getId() {
         return id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+        this.validate();
     }
 
     public String getFirstName() {

@@ -1,13 +1,13 @@
 package com.bynature.adapters.out.persistence.jpa.entity;
 
 import com.bynature.domain.model.Customer;
-import com.bynature.domain.model.Email;
-import com.bynature.domain.model.PhoneNumber;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +26,11 @@ public class CustomerEntity {
     @Id
     @NotNull(message = "Customer ID cannot be null")
     private UUID id;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    @NotNull(message = "User cannot be null")
+    private UserEntity user;
 
     @Column(name = "first_name", nullable = false)
     @NotBlank(message = "First name cannot be empty")
@@ -82,6 +87,7 @@ public class CustomerEntity {
     }
 
     public CustomerEntity(UUID id,
+                          UserEntity user,
                           String firstName,
                           String lastName,
                           String email,
@@ -95,6 +101,7 @@ public class CustomerEntity {
                           LocalDateTime createdAt,
                           LocalDateTime updatedAt) {
         this.id = id;
+        this.user = user;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -115,6 +122,14 @@ public class CustomerEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
     public String getFirstName() {
@@ -205,29 +220,27 @@ public class CustomerEntity {
         this.orders = orders;
     }
 
-    public Customer toDomain() {
-        Customer customer = new Customer(
-                this.id,
-                this.firstName,
-                this.lastName,
-                new Email(this.email),
-                new PhoneNumber(this.phoneNumber),
-                this.createdAt,
-                this.updatedAt
-        );
-
-        customer.setStreetNumber(this.streetNumber);
-        customer.setStreet(this.street);
-        customer.setCity(this.city);
-        customer.setRegion(this.region);
-        customer.setPostalCode(this.postalCode);
-        customer.setCountry(this.country);
-        return customer;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 
     public static CustomerEntity fromDomain(Customer customer) {
         return new CustomerEntity(
                 customer.getId(),
+                UserEntity.fromDomain(customer.getUser()),
                 customer.getFirstName(),
                 customer.getLastName(),
                 customer.getEmail().email(),

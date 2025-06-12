@@ -21,7 +21,14 @@ class CustomerTest {
     private final PhoneNumber validPhone = new PhoneNumber("+33612345678");
     private final String validFirstName = "John";
     private final String validLastName = "Doe";
+    private final String validStreetNumber = "123";
+    private final String validStreet = "Main St";
+    private final String validCity = "Paris";
+    private final String validRegion = "Île-de-France";
+    private final String validPostalCode = "75001";
+    private final String validCountry = "France";
     private final UUID validId = UUID.randomUUID();
+    private final User validUser = new User(validEmail, "password",Role.CUSTOMER);
 
     @Nested
     @DisplayName("Customer Creation Tests")
@@ -29,7 +36,8 @@ class CustomerTest {
         @Test
         @DisplayName("Should create customer with valid parameters")
         void shouldCreateCustomerWithValidParameters() {
-            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+            var customer = new Customer(validUser, validFirstName, validLastName, validEmail, validPhone,
+                    validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
             customer.validate();
 
             assertThat(customer.getId()).isNotNull();
@@ -43,6 +51,7 @@ class CustomerTest {
         @DisplayName("Should create customer with provided ID")
         void shouldCreateCustomerWithProvidedId() {
             var customer = new Customer(validId,
+                    validUser,
                     validFirstName,
                     validLastName,
                     validEmail,
@@ -65,6 +74,7 @@ class CustomerTest {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
                         Customer invalidCustomer = new Customer(null,
+                                validUser,
                                 validFirstName,
                                 validLastName,
                                 validEmail,
@@ -83,7 +93,8 @@ class CustomerTest {
         void shouldThrowExceptionWhenFirstNameIsInvalid(String invalidFirstName) {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
-                        Customer invalidCustomer = new Customer(invalidFirstName, validLastName, validEmail, validPhone);
+                        Customer invalidCustomer = new Customer(validUser,invalidFirstName, validLastName, validEmail, validPhone,
+                                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
                         invalidCustomer.validate();
                     })
                     .satisfies(e -> assertThat(e.getViolations()).contains("Le prénom ne peut pas être vide"));
@@ -96,7 +107,8 @@ class CustomerTest {
         void shouldThrowExceptionWhenLastNameIsInvalid(String invalidLastName) {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
-                        Customer invalidCustomer = new Customer(validFirstName, invalidLastName, validEmail, validPhone);
+                        Customer invalidCustomer = new Customer(validUser,validFirstName, invalidLastName, validEmail, validPhone
+                        , validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
                         invalidCustomer.validate();
                     })
                     .satisfies(e -> assertThat(e.getViolations()).contains("Le nom ne peut pas être vide"));
@@ -107,7 +119,8 @@ class CustomerTest {
         void shouldThrowExceptionWhenEmailIsNull() {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
-                        Customer invalidCustomer = new Customer(validFirstName, validLastName, null, validPhone);
+                        Customer invalidCustomer = new Customer(validUser,validFirstName, validLastName, null, validPhone,
+                                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
                         invalidCustomer.validate();
                     })
                     .satisfies(e -> assertThat(e.getViolations()).contains("L'email ne peut pas être null"));
@@ -118,7 +131,8 @@ class CustomerTest {
         void shouldThrowExceptionWhenPhoneIsNull() {
             assertThatExceptionOfType(CustomerValidationException.class)
                     .isThrownBy(() -> {
-                        Customer invalidCustomer = new Customer(validFirstName, validLastName, validEmail, null);
+                        Customer invalidCustomer = new Customer(validUser,validFirstName, validLastName, validEmail, null,
+                                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
                         invalidCustomer.validate();
                     })
                     .satisfies(e -> assertThat(e.getViolations()).contains("Le numéro de téléphone ne peut pas être null"));
@@ -129,7 +143,8 @@ class CustomerTest {
     @DisplayName("Address Field Validation Tests")
     class AddressFieldValidationTests {
         private Customer createValidCustomer() {
-            return new Customer(validFirstName, validLastName, validEmail, validPhone);
+            return new Customer(validUser,validFirstName, validLastName, validEmail, validPhone,
+                    validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
         }
 
         @ParameterizedTest
@@ -217,7 +232,8 @@ class CustomerTest {
         @Test
         @DisplayName("Should create customer with complete address")
         void shouldCreateCustomerWithCompleteAddress() {
-            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+            var customer = new Customer(validUser,validFirstName, validLastName, validEmail, validPhone,
+                    validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
             // Set address fields
             customer.setStreetNumber("42");
@@ -239,7 +255,8 @@ class CustomerTest {
         @Test
         @DisplayName("Should update address fields correctly")
         void shouldUpdateAddressFieldsCorrectly() {
-            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+            var customer = new Customer(validUser,validFirstName, validLastName, validEmail, validPhone,
+                    validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
             // Set initial address
             customer.setStreetNumber("10");
@@ -272,7 +289,8 @@ class CustomerTest {
         @Test
         @DisplayName("Should validate all address fields when updating")
         void shouldValidateAllAddressFieldsWhenUpdating() {
-            var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+            var customer = new Customer(validUser,validFirstName, validLastName, validEmail, validPhone,
+                    validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
             // Test each validation separately
             assertThatExceptionOfType(CustomerValidationException.class)
@@ -298,7 +316,8 @@ class CustomerTest {
     @Test
     @DisplayName("Should have updatedAt equal to createdAt upon initial creation")
     void shouldHaveUpdatedAtEqualToCreatedAtUponInitialCreation() {
-        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+        var customer = new Customer(validUser, validFirstName, validLastName, validEmail, validPhone,
+                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
         assertThat(customer.getUpdatedAt()).isEqualTo(customer.getCreatedAt());
     }
@@ -306,7 +325,8 @@ class CustomerTest {
     @Test
     @DisplayName("Should allow updatedAt to be equal to createdAt")
     void shouldAllowUpdatedAtToBeEqualToCreatedAt() {
-        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+        var customer = new Customer(validUser, validFirstName, validLastName, validEmail, validPhone,
+                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
         assertDoesNotThrow(() -> {
             customer.setUpdatedAt(customer.getCreatedAt());
@@ -316,7 +336,8 @@ class CustomerTest {
     @Test
     @DisplayName("Should allow updatedAt to be after createdAt")
     void shouldAllowUpdatedAtToBeAfterCreatedAt() {
-        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+        var customer = new Customer(validUser, validFirstName, validLastName, validEmail, validPhone,
+                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
         assertDoesNotThrow(() -> {
             customer.setUpdatedAt(customer.getCreatedAt().plusSeconds(1));
@@ -326,7 +347,8 @@ class CustomerTest {
     @Test
     @DisplayName("Should reject updatedAt before createdAt")
     void shouldRejectUpdatedAtBeforeCreatedAt() {
-        var customer = new Customer(validFirstName, validLastName, validEmail, validPhone);
+        var customer = new Customer(validUser, validFirstName, validLastName, validEmail, validPhone,
+                validStreetNumber, validStreet, validCity, validRegion, validPostalCode, validCountry);
 
         assertThatExceptionOfType(CustomerValidationException.class)
                 .isThrownBy(() -> {

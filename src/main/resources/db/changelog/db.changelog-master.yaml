@@ -12,10 +12,18 @@ databaseChangeLog:
             splitStatements: true
             stripComments: true
         - sqlFile:
+            path: db/changelog/V1_initial_users_data.sql
+            splitStatements: true
+            stripComments: true
+        - sqlFile:
             path: db/changelog/V1_initial_customers_data.sql
             splitStatements: true
             stripComments: true
         - sqlFile:
             path: db/changelog/V1_initial_shipping_address_data.sql
+            splitStatements: true
+            stripComments: true
+        - sqlFile:
+            path: db/changelog/V1_initial_constraints.sql
             splitStatements: true
             stripComments: true

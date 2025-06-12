@@ -1,3 +1,17 @@
+create table users
+(
+    id            uuid         not null,
+    email         varchar(255) not null unique,
+    password      varchar(255) not null,
+    customer_id   uuid unique,
+    active        boolean      not null,
+    role          varchar(50)  not null,
+    last_login_at timestamp(6),
+    created_at    timestamp(6) not null,
+    updated_at    timestamp(6) not null,
+    primary key (id)
+);
+
 create table items
 (
     id          uuid         not null,
@@ -72,6 +86,7 @@ create table shipping_addresses
 create table customers
 (
     id            uuid         not null,
+    user_id       uuid unique not null,
     first_name    varchar(255) not null,
     last_name     varchar(255) not null,
     email         varchar(255) not null,
@@ -87,11 +102,5 @@ create table customers
     primary key (id)
 );
 
-alter table if exists order_items
-    add constraint FK88tn2oqcxl1034banqif9r70x foreign key (item_id) references items;
-alter table if exists order_items
-    add constraint FKbioxgbv59vetrxe0ejfubep1w foreign key (order_id) references orders;
-alter table if exists orders
-    add constraint FK_orders_customer foreign key (customer_id) references customers;
-alter table if exists shipping_addresses
-    add constraint FK_shipping_addresses_customer foreign key (customer_id) references customers;
+
+

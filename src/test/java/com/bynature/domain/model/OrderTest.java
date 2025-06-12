@@ -19,12 +19,22 @@ class OrderTest {
     private List<OrderItem> validOrderItems;
     private PhoneNumber validPhone;
     private Email validEmail;
+    private User validUser;
+    private final String validPassword = "securePassword123";
+    private final Role validRole = Role.CUSTOMER;
 
     @BeforeEach
     void setUp() {
         validPhone = new PhoneNumber("+33612345678");
         validEmail = new Email("test@example.com");
-        validCustomer = new Customer("John", "Doe", validEmail, validPhone);
+        validUser = new User(validEmail, validPassword, validRole);
+
+        validCustomer = new Customer(validUser,"John", "Doe",
+                validEmail,
+                validPhone,
+                "123", "Main Street", "Paris", "Île-de-France",
+                "75001", "France"
+                );
 
         var item = new Item( "Test Item", "Description", 100.0,"testUrl");
         validOrderItems = List.of(new OrderItem(item, 2));

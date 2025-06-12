@@ -1,8 +1,5 @@
 package com.bynature.adapters.out.persistence.jpa.entity;
 
-import com.bynature.domain.model.Email;
-import com.bynature.domain.model.PhoneNumber;
-import com.bynature.domain.model.ShippingAddress;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -174,22 +171,68 @@ public class ShippingAddressEntity {
         this.country = country;
     }
 
-    public ShippingAddress toDomain() {
-        return new ShippingAddress(this.id,
-        this.customer.toDomain(),
-        this.label,
-        this.firstName,
-        this.lastName,
-        new PhoneNumber(this.phoneNumber),
-        new Email(this.email),
-        this.streetNumber,
-        this.street,
-        this.city,
-        this.region,
-        this.postalCode,
-        this.country,
-        this.createdAt,
-        this.updatedAt);
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public CustomerEntity getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(CustomerEntity customer) {
+        this.customer = customer;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
 

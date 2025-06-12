@@ -1,5 +1,6 @@
 package com.bynature.adapters.out.persistence.jpa.adapter;
 
+import com.bynature.adapters.out.persistence.jpa.adapter.mapper.EntityMapper;
 import com.bynature.adapters.out.persistence.jpa.entity.CustomerEntity;
 import com.bynature.adapters.out.persistence.jpa.repository.CustomerJpaRepository;
 import com.bynature.domain.exception.CustomerNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+
 
 @Repository
 public class CustomerRepositoryAdapter implements CustomerRepository {
@@ -51,7 +53,7 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
 
         log.debug("Fetching customer with ID: {}", customerId);
 
-        return customerJpaRepository.findById(customerId).map(CustomerEntity::toDomain)
+        return customerJpaRepository.findById(customerId).map(EntityMapper::mapCustomerToDomain)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found with id: " + customerId));
     }
 
@@ -68,4 +70,5 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
 
         log.info("Customer deleted with ID: {}", customerId);
     }
+
 }

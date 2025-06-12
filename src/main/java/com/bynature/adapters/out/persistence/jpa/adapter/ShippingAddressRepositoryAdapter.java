@@ -19,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.bynature.adapters.out.persistence.jpa.adapter.mapper.EntityMapper.mapShippingAddressToDomain;
+
 @Repository
 public class ShippingAddressRepositoryAdapter implements ShippingAddressRepository {
 
@@ -110,10 +112,6 @@ public class ShippingAddressRepositoryAdapter implements ShippingAddressReposito
         );
     }
 
-    private ShippingAddress mapToDomain(ShippingAddressEntity entity) {
-        return entity.toDomain();
-    }
-
     public CompletableFuture<List<ShippingAddress>> getShippingAddressesByCustomerIdAsync(UUID customerId) {
         return shippingAddressJpaRepository.findByCustomerIdAsync(customerId)
                 .thenApply(addresses -> addresses.stream()
@@ -124,5 +122,9 @@ public class ShippingAddressRepositoryAdapter implements ShippingAddressReposito
     public Page<ShippingAddress> getShippingAddressesByCustomerIdPaginated(UUID customerId, PageRequest pageRequest) {
         Page<ShippingAddressEntity> addressPage = shippingAddressJpaRepository.findByCustomer_Id(customerId, pageRequest);
         return addressPage.map(this::mapToDomain);
+    }
+
+    private ShippingAddress mapToDomain(ShippingAddressEntity entity) {
+        return mapShippingAddressToDomain(entity);
     }
 }

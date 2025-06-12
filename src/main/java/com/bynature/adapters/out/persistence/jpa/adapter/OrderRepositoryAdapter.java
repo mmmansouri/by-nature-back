@@ -1,5 +1,6 @@
 package com.bynature.adapters.out.persistence.jpa.adapter;
 
+import com.bynature.adapters.out.persistence.jpa.adapter.mapper.EntityMapper;
 import com.bynature.adapters.out.persistence.jpa.entity.CustomerEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.ItemEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.OrderEntity;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -85,7 +85,7 @@ public class OrderRepositoryAdapter implements OrderRepository {
     public List<Order> getOrdersByCustomer(UUID customerId) {
         return orderJpaRepository.findByCustomerId(customerId)
                 .stream()
-                .map(this::mapToDomain)
+                .map(EntityMapper::mapOrderToDomain)
                 .collect(Collectors.toList());
     }
 
@@ -103,10 +103,9 @@ public class OrderRepositoryAdapter implements OrderRepository {
 
         log.debug("Fetching order with ID: {}", orderId);
 
-        Optional<OrderEntity> optionalEntity = orderJpaRepository.findById(orderId);
-
-        return optionalEntity.map(this::mapToDomain)
-                .orElseThrow(()->new OrderNotFoundException("Order not found with id: " + orderId, orderId));
+        return orderJpaRepository.findById(orderId)
+                .map(EntityMapper::mapOrderToDomain)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId, orderId));
     }
 
     @Override
@@ -161,26 +160,23 @@ public class OrderRepositoryAdapter implements OrderRepository {
         return orderEntity;
     }
 
-    private Order mapToDomain(OrderEntity entity) {
-        return entity.toDomain();
-    }
-
     public CompletableFuture<List<Order>> getOrdersByCustomerIdAsync(UUID customerId) {
         return orderJpaRepository.findByCustomerIdAsync(customerId)
                 .thenApply(orders -> orders.stream()
-                        .map(this::mapToDomain)
+                        .map(EntityMapper::mapOrderToDomain)
                         .collect(Collectors.toList()));
     }
 
     public Page<Order> getOrdersByCustomerIdPaginated(UUID customerId, PageRequest pageRequest) {
         Page<OrderEntity> orderPage = orderJpaRepository.findByCustomer_Id(customerId, pageRequest);
-        return orderPage.map(this::mapToDomain);
+        return orderPage.map(EntityMapper::mapOrderToDomain);
     }
 
     public List<Order> getOrdersByCustomerAndStatus(UUID customerId, OrderStatus orderStatus) {
         List<OrderEntity> orderEntities = orderJpaRepository.findByCustomer_IdAndStatus(customerId, orderStatus);
         return orderEntities.stream()
-                .map(this::mapToDomain)
+                .map(EntityMapper::mapOrderToDomain)
                 .collect(Collectors.toList());
     }
+
 }

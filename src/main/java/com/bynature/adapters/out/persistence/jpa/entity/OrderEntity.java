@@ -1,11 +1,7 @@
 package com.bynature.adapters.out.persistence.jpa.entity;
 
 
-import com.bynature.domain.model.Email;
-import com.bynature.domain.model.Order;
-import com.bynature.domain.model.OrderItem;
 import com.bynature.domain.model.OrderStatus;
-import com.bynature.domain.model.PhoneNumber;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -286,31 +282,6 @@ public class OrderEntity {
     public void removeOrderItem(OrderItemEntity orderItem) {
         orderItems.remove(orderItem);
         orderItem.setOrder(null);
-    }
-
-    public Order toDomain() {
-        Order order = new Order(
-                this.id,
-                this.customer.toDomain(),
-                this.orderItems.stream()
-                        .map(entity -> new OrderItem(entity.getItem().toDomain(), entity.getQuantity()))
-                        .toList(),
-                this.total,
-                this.status,
-                this.firstName,
-                this.lastName,
-                new PhoneNumber(this.phoneNumber),
-                new Email(this.email),
-                this.streetNumber,
-                this.street,
-                this.city,
-                this.region,
-                this.postalCode,
-                this.country,
-                this.createdAt,
-                this.updatedAt);
-        order.setPaymentIntentId(this.paymentIntentId);
-        return order;
     }
 
 }

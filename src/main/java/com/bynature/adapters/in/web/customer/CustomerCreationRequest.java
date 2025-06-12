@@ -3,9 +3,16 @@ package com.bynature.adapters.in.web.customer;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.PhoneNumber;
+import com.bynature.domain.service.UserService;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
 
 public record CustomerCreationRequest(
+        @NotNull(message = "User is required")
+        UUID userId,
+
         @NotBlank(message = "First name is required")
         String firstName,
 
@@ -36,21 +43,19 @@ public record CustomerCreationRequest(
         @NotBlank(message = "Country is required")
         String country
 ) {
-    public Customer toDomain() {
-        Customer customer = new Customer(
+    public Customer toDomain(UserService userService) {
+        return new Customer(
+                userService.getUser(userId),
                 firstName,
                 lastName,
                 new Email(email),
-                new PhoneNumber(phoneNumber)
+                new PhoneNumber(phoneNumber),
+                streetNumber,
+                street,
+                city,
+                region,
+                postalCode,
+                country
         );
-
-        if (streetNumber != null) customer.setStreetNumber(streetNumber);
-        if (street != null) customer.setStreet(street);
-        if (city != null) customer.setCity(city);
-        if (region != null) customer.setRegion(region);
-        if (postalCode != null) customer.setPostalCode(postalCode);
-        if (country != null) customer.setCountry(country);
-
-        return customer;
     }
 }

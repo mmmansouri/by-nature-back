@@ -3,6 +3,7 @@ package com.bynature.adapters.in.web.customer;
 import com.bynature.domain.exception.CustomerNotFoundException;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.service.CustomerService;
+import com.bynature.domain.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +21,16 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final UserService userService;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(CustomerService customerService, UserService userService) {
         this.customerService = customerService;
+        this.userService = userService;
     }
 
     @PostMapping
     public ResponseEntity<UUID> createCustomer(@Valid @RequestBody CustomerCreationRequest customerCreationRequest) {
-        UUID createdCustomerId = customerService.createCustomer(customerCreationRequest.toDomain());
+        UUID createdCustomerId = customerService.createCustomer(customerCreationRequest.toDomain(userService));
 
         return ResponseEntity
                 .created(URI.create("/customers/" + createdCustomerId))

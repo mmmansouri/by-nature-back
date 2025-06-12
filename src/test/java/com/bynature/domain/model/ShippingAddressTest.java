@@ -19,7 +19,11 @@ class ShippingAddressTest {
 
     private static final PhoneNumber validPhone = new PhoneNumber("+33612345678");
     private static final Email validEmail = new Email("test@example.com");
-    private static final Customer validCustomer = new Customer("John", "Doe", validEmail, validPhone);
+    private static final String validPassword = "securePassword123";
+    private static final Role validRole = Role.CUSTOMER;
+    private static final User validUser = new User(validEmail, validPassword, validRole);
+    private static final Customer validCustomer = new Customer(validUser,"John", "Doe", validEmail, validPhone,
+            "123", "Main Street", "Paris", "Île-de-France", "75001", "France");
 
     @Test
     @DisplayName("Should create shipping address with valid data")

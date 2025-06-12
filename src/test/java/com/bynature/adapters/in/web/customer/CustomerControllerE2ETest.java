@@ -3,6 +3,7 @@ package com.bynature.adapters.in.web.customer;
 import com.bynature.AbstractByNatureTest;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.service.CustomerService;
+import com.bynature.domain.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,6 +36,9 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private UserService userService;
 
     @Test
     public void whenGetExistingCustomer_shouldReturnCustomer_E2E() {
@@ -79,6 +83,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     public void whenCreateValidCustomer_shouldReturnCreated_E2E() {
         // Create valid customer request
         CustomerCreationRequest validRequest = new CustomerCreationRequest(
+                UUID.fromString("b48ac10b-58cc-4372-a567-0e02b2c3d402"),
                 "Jane",
                 "Doe",
                 "jane.doe@example.com",
@@ -125,7 +130,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 // Case: Empty first name
                 Arguments.of(
                         "Empty first name",
-                        new CustomerCreationRequest(
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),
                                 "", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"
                         )
@@ -133,7 +138,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 // Case: Missing last name
                 Arguments.of(
                         "Missing last name",
-                        new CustomerCreationRequest(
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),
                                 "John", "", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"
                         )
@@ -141,7 +146,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 // Case: Invalid email format
                 Arguments.of(
                         "Invalid email format",
-                        new CustomerCreationRequest(
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),
                                 "John", "Doe", "invalid-email", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"
                         )
@@ -149,7 +154,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 // Case: Invalid phone format
                 Arguments.of(
                         "Invalid phone format",
-                        new CustomerCreationRequest(
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),
                                 "John", "Doe", "john.doe@example.com", "123456",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"
                         )
@@ -157,7 +162,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 // Case: Empty street number (will fail domain validation)
                 Arguments.of(
                         "Empty street number",
-                        new CustomerCreationRequest(
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),
                                 "John", "Doe", "john.doe@example.com", "+33612345678",
                                 "", "Main Street", "Paris", "Île-de-France", "75001", "France"
                         )
@@ -189,12 +194,12 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     void shouldMapValidRequestToDomainModel() {
         // Create a valid request
         CustomerCreationRequest validRequest = new CustomerCreationRequest(
-                "Jane", "Smith", "jane.smith@example.com", "+33612345679",
+                UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"Jane", "Smith", "jane.smith@example.com", "+33612345679",
                 "123", "Rue Nationale", "Lyon", "Auvergne-Rhône-Alpes", "69002", "France"
         );
 
         // Map to domain model
-        Customer customer = validRequest.toDomain();
+        Customer customer = validRequest.toDomain(userService);
 
         // Verify mapping is correct
         assertThat(customer).isNotNull();
@@ -215,68 +220,68 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
         return Stream.of(
                 // Testing all required fields with more detailed descriptions
                 Arguments.of("Empty first name",
-                        new CustomerCreationRequest("", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "firstName", "First name is required"),
 
                 Arguments.of("Blank first name",
-                        new CustomerCreationRequest("   ", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"   ", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "firstName", "First name is required"),
 
                 Arguments.of("Empty last name",
-                        new CustomerCreationRequest("John", "", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "lastName", "Last name is required"),
 
                 Arguments.of("Invalid email format",
-                        new CustomerCreationRequest("John", "Doe", "not-an-email", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "not-an-email", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "email", "must be a well-formed email address"),
 
                 Arguments.of("Empty email",
-                        new CustomerCreationRequest("John", "Doe", "", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "email", "Email is required"),
 
                 Arguments.of("Empty phone number",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "phoneNumber", "Phone number is required"),
 
                 Arguments.of("Invalid phone format",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "not-a-phone",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "not-a-phone",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "phoneNumber", "Invalid phone number format"),
 
                 // Address field validations
                 Arguments.of("Empty street number",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "streetNumber", "Street number number is required"),
 
                 Arguments.of("Empty street",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "", "Paris", "Île-de-France", "75001", "France"),
                         "street", "Street is required"),
 
                 Arguments.of("Empty city",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "", "Île-de-France", "75001", "France"),
                         "city", "City number is required"),
 
                 Arguments.of("Empty region",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "", "75001", "France"),
                         "region", "Region is required"),
 
                 Arguments.of("Empty postal code",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "", "France"),
                         "postalCode", "Postal code is required"),
 
                 Arguments.of("Empty country",
-                        new CustomerCreationRequest("John", "Doe", "john.doe@example.com", "+33612345678",
+                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", ""),
                         "country", "Country is required")
         );
@@ -328,7 +333,7 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     void shouldRejectRequestWithMultipleValidationErrors() {
         // Creating request with multiple invalid fields
         CustomerCreationRequest invalidRequest = new CustomerCreationRequest(
-                "", "", "", "",
+                null,"", "", "", "",
                 "", "", "", "", "", ""
         );
 
