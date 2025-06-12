@@ -24,12 +24,12 @@ public class UserSpringService implements UserService {
 
     @Override
     public UUID createUser(User user) {
-        return userRepository.updateUser(user);
+        return userRepository.saveUser(user);
     }
 
     @Override
     public UUID updateUser(User user) {
-        return null;
+        return userRepository.updateUser(user);
     }
 
     @Override

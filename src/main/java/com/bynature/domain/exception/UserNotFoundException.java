@@ -4,27 +4,27 @@ import java.util.UUID;
 
 public class UserNotFoundException extends RuntimeException {
 
-    private final UUID customerId;
+    private final UUID userId;
 
     /**
      * Constructs a new exception with the specified detail message and customer ID.
      *
      * @param message the detail message
-     * @param customerId the ID of the customer that was not found
+     * @param userId the ID of the customer that was not found
      */
-    public UserNotFoundException(String message, UUID customerId) {
+    public UserNotFoundException(String message, UUID userId) {
         super(message);
-        this.customerId = customerId;
+        this.userId = userId;
     }
 
     /**
      * Constructs a new exception with a standard message for the given customer ID.
      *
-     * @param customerId the ID of the customer that was not found
+     * @param userId the ID of the customer that was not found
      */
-    public UserNotFoundException(UUID customerId) {
-        super("Customer not found with ID: " + customerId);
-        this.customerId = customerId;
+    public UserNotFoundException(UUID userId) {
+        super("Customer not found with ID: " + userId);
+        this.userId = userId;
     }
 
     /**
@@ -34,7 +34,7 @@ public class UserNotFoundException extends RuntimeException {
      */
     public UserNotFoundException(String message) {
         super(message);
-        this.customerId = null;
+        this.userId = null;
     }
 
     /**
@@ -42,7 +42,7 @@ public class UserNotFoundException extends RuntimeException {
      *
      * @return the customer ID, or null if not available
      */
-    public UUID getCustomerId() {
-        return customerId;
+    public UUID getUserId() {
+        return userId;
     }
 }
