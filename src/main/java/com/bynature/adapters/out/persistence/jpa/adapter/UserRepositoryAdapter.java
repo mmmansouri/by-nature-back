@@ -46,7 +46,7 @@ public class UserRepositoryAdapter implements UserRepository {
             userEntity.setCustomer(customerEntity);
         }
 
-        log.info("User updated with ID: {}", user.getId());
+        log.info("User created/updated with ID: {}", user.getId());
 
         return userJpaRepository
                 .save(userEntity)

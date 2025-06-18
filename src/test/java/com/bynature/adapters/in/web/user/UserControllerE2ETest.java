@@ -78,8 +78,7 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     public void whenCreateValidUser_shouldReturnCreated_E2E() {
         UserCreationRequest validRequest = new UserCreationRequest(
                 "new.user@example.com",
-                "P@ssw0rd1",
-                Role.CUSTOMER
+                "P@ssw0rd1"
         );
 
         ResponseEntity<UUID> response = restTemplate.postForEntity(
@@ -102,7 +101,7 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
         UserRetrievalResponse user = getResponse.getBody();
         assertThat(user).isNotNull();
         assertThat(user.email()).isEqualTo(validRequest.email());
-        assertThat(user.role()).isEqualTo(validRequest.role().name());
+        assertThat(user.role()).isEqualTo(Role.CUSTOMER.toString());
         assertThat(user.active()).isTrue();
     }
 
@@ -167,29 +166,26 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     private static Stream<Arguments> invalidUserRequests() {
         return Stream.of(
                 Arguments.of("Empty email",
-                        new UserCreationRequest("", "P@ssw0rd1", Role.CUSTOMER),
+                        new UserCreationRequest("", "P@ssw0rd1"),
                         "email", "Email is required"),
                 Arguments.of("Invalid email format",
-                        new UserCreationRequest("not-an-email", "P@ssw0rd1", Role.CUSTOMER),
+                        new UserCreationRequest("not-an-email", "P@ssw0rd1"),
                         "email", "Invalid email format"),
                 Arguments.of("Empty password",
-                        new UserCreationRequest("user@example.com", "", Role.CUSTOMER),
+                        new UserCreationRequest("user@example.com", ""),
                         "password", "Password is required"),
                 Arguments.of("Weak password - no special character",
-                        new UserCreationRequest("user@example.com", "Password123", Role.CUSTOMER),
+                        new UserCreationRequest("user@example.com", "Password123"),
                         "password", "Password must be at least 8 characters"),
                 Arguments.of("Weak password - no uppercase",
-                        new UserCreationRequest("user@example.com", "password@123", Role.CUSTOMER),
+                        new UserCreationRequest("user@example.com", "password@123"),
                         "password", "Password must be at least 8 characters"),
                 Arguments.of("Weak password - no lowercase",
-                        new UserCreationRequest("user@example.com", "PASSWORD@123", Role.CUSTOMER),
+                        new UserCreationRequest("user@example.com", "PASSWORD@123"),
                         "password", "Password must be at least 8 characters"),
                 Arguments.of("Weak password - no digit",
-                        new UserCreationRequest("user@example.com", "Password@ABC", Role.CUSTOMER),
-                        "password", "Password must be at least 8 characters"),
-                Arguments.of("Null role",
-                        new UserCreationRequest("user@example.com", "P@ssw0rd1", null),
-                        "role", "Role is required")
+                        new UserCreationRequest("user@example.com", "Password@ABC"),
+                        "password", "Password must be at least 8 characters")
         );
     }
 
@@ -233,8 +229,7 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     void shouldMapValidRequestToDomainModel() {
         UserCreationRequest validRequest = new UserCreationRequest(
                 "test.user@example.com",
-                "P@ssw0rd1",
-                Role.ADMIN
+                "P@ssw0rd1"
         );
 
         User user = validRequest.toDomain();
@@ -243,7 +238,7 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
         assertThat(user.getId()).isNotNull();
         assertThat(user.getEmail().email()).isEqualTo("test.user@example.com");
         assertThat(user.getPassword()).isEqualTo("P@ssw0rd1");
-        assertThat(user.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(user.getRole()).isEqualTo(Role.CUSTOMER);
         assertThat(user.isActive()).isTrue();
     }
 

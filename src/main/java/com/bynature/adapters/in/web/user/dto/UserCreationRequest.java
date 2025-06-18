@@ -4,7 +4,6 @@ import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Role;
 import com.bynature.domain.model.User;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record UserCreationRequest(
@@ -18,12 +17,9 @@ public record UserCreationRequest(
                 message = "Password must be at least 8 characters and contain at least one digit, " +
                         "one lowercase letter, one uppercase letter, one special character, and no whitespace"
         )
-        String password,
-
-        @NotNull(message = "Role is required")
-        Role role
+        String password
 ) {
     public User toDomain() {
-        return new User(new Email(email), password, role);
+        return new User(new Email(email), password, Role.CUSTOMER);
     }
 }
