@@ -9,6 +9,7 @@ import com.bynature.domain.model.User;
 import com.bynature.domain.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,9 +27,11 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
@@ -76,9 +79,13 @@ public class UserController {
     public ResponseEntity<Void> updatePassword(
             @PathVariable("id") UUID uuid,
             @Valid @RequestBody UserPasswordUpdateRequest passwordRequest) {
-        // TODO : In a real application, you would verify the current password here
+
         User user = userService.getUser(uuid);
-        user.setPassword(passwordRequest.newPassword());
+
+        // Encrypt the new password before saving
+        String encodedPassword = passwordEncoder.encode(passwordRequest.newPassword());
+        user.setPassword(encodedPassword);
+
         userService.updateUser(user);
         return ResponseEntity.noContent().build();
     }

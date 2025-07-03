@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    properties:
+      jakarta.persistence.validation.mode: auto
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        # Set flush mode to ALWAYS to make changes visible immediately
+        flushMode: ALWAYS
+        # Additional properties to ensure changes are committed promptly
+        flush_before_completion: true
+        order_updates: true
+    # Optionally, disable Hibernate auto schema generation if using Liquibase/Flyway
+    hibernate:
+      ddl-auto: none
+  datasource:
+    # Use an in-memory H2 database for tests
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''

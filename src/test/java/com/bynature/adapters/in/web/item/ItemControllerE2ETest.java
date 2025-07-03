@@ -1,10 +1,9 @@
 package com.bynature.adapters.in.web.item;
 
 import com.bynature.AbstractByNatureTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -19,8 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ItemControllerE2ETest extends AbstractByNatureTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @BeforeEach
+    public void setUp() {
+        // Authenticate before each test
+        authenticateUser();
+    }
 
     @Test
     public void whenCreateItem_shouldRetrieveIt_E2E() {
@@ -32,10 +34,11 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
                 "http://test-image.jpg"
         );
 
-        // Création de l'article - expect UUID response rather than ItemRetrievalResponse
-        ResponseEntity<UUID> createResponse = restTemplate.postForEntity(
+        // Création de l'article using authenticated entity
+        ResponseEntity<UUID> createResponse = restTemplate.exchange(
                 "/items",
-                request,
+                HttpMethod.POST,
+                createAuthenticatedEntity(request),
                 UUID.class
         );
 
@@ -44,10 +47,13 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
         assertThat(createResponse.getBody()).isNotNull();
         UUID createdItemId = createResponse.getBody();
 
-        // Récupération de l'article créé
-        ResponseEntity<ItemRetrievalResponse> getResponse = restTemplate.getForEntity(
-                "/items/" + createdItemId,
-                ItemRetrievalResponse.class
+        // Récupération de l'article créé using authenticated entity
+        ResponseEntity<ItemRetrievalResponse> getResponse = restTemplate.exchange(
+                "/items/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                ItemRetrievalResponse.class,
+                createdItemId
         );
 
         // Vérification des données
@@ -62,11 +68,11 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
 
     @Test
     public void whenGetAllItems_shouldReturnListOfItems_E2E() {
-        // Récupération de tous les articles
+        // Récupération de tous les articles using authenticated entity
         ResponseEntity<List<ItemRetrievalResponse>> response = restTemplate.exchange(
                 "/items",
                 HttpMethod.GET,
-                null,
+                createAuthenticatedEntity(),
                 new ParameterizedTypeReference<>() {
                 }
         );
@@ -79,10 +85,13 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
 
     @Test
     public void whenGetNonExistingItem_shouldReturn404_E2E() {
-        // Tentative de récupération d'un article inexistant
-        ResponseEntity<ItemRetrievalResponse> response = restTemplate.getForEntity(
-                "/items/" + UUID.randomUUID(),
-                ItemRetrievalResponse.class
+        // Tentative de récupération d'un article inexistant using authenticated entity
+        ResponseEntity<ItemRetrievalResponse> response = restTemplate.exchange(
+                "/items/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                ItemRetrievalResponse.class,
+                UUID.randomUUID()
         );
 
         // Vérification
@@ -99,9 +108,11 @@ public class ItemControllerE2ETest extends AbstractByNatureTest {
                 ""  // Empty image URL (invalid)
         );
 
-        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+        // Use authenticated entity for POST request
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/items",
-                invalidRequest,
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 

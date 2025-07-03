@@ -1,6 +1,5 @@
 package com.bynature.adapters.out.persistence.jpa;
 
-import com.bynature.AbstractByNatureTest;
 import com.bynature.adapters.out.persistence.jpa.adapter.ItemRepositoryAdapter;
 import com.bynature.domain.exception.ItemNotFoundException;
 import com.bynature.domain.exception.ItemValidationException;
@@ -12,8 +11,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
@@ -23,11 +20,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DataJpaTest
-@EnableAutoConfiguration
+
 @ContextConfiguration(classes = {ItemRepositoryAdapter.class})
 @DisplayName("Item JPA Adapter Tests")
-public class ItemJpaAdapterTest extends AbstractByNatureTest {
+public class ItemJpaAdapterTest extends AbstractJpaTest {
 
     @Autowired
     private ItemRepositoryAdapter itemJpaRepository;

@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: bynature
+  jpa:
+    properties:
+      jakarta.persistence.validation.mode: auto
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+  mvc:
+    throw-validation-exceptions: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bynature
+    username: postgres
+    password: 231283
+    driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080
+
+stripe:
+  api:
+    publicKey: pk_test_51RaMArIWYChH7MJu7tjbLAIHh4BVlPpeUKJVjhFrAvU1mEVogrhlJIgJhxcQfnjJjVDVGJr1zZwyxxIcP1VdATbM00j99WEFAM
+    secretKey: sk_test_51RaMArIWYChH7MJuhHHhJmAzxUmggtPGeHCmvEaqaI9t6nyUJ6mkJTNIIDPLSHZxoOLJuoPvTKmNakRQ0fFE5tPu000ldPuyKv
+  webhook:
+    secret: whsec_459e6f1add2667dbbedfe10a3427bf02bad2e6bf4758d8527071326b321e5999
+
+logging:
+  level:
+    root: INFO
+
+application:
+  security:
+    oauth2:
+      token:
+        access-token-validity-seconds: 3600 # 1 hour
+        refresh-token-validity-seconds: 86400 # 24 hours

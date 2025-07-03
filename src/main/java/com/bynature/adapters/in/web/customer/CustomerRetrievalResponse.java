@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record CustomerRetrievalResponse(
         UUID id,
+        UUID userId,
         String firstName,
         String lastName,
         String email,
@@ -22,6 +23,7 @@ public record CustomerRetrievalResponse(
     public static CustomerRetrievalResponse fromDomain(Customer customer) {
         return new CustomerRetrievalResponse(
                 customer.getId(),
+                customer.getUser().getId(),
                 customer.getFirstName(),
                 customer.getLastName(),
                 customer.getEmail().email(),

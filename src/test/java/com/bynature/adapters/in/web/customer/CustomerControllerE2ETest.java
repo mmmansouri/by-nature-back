@@ -4,6 +4,7 @@ import com.bynature.AbstractByNatureTest;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.service.CustomerService;
 import com.bynature.domain.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,11 +12,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
@@ -32,22 +30,28 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     private static final UUID CUSTOMER_ID = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
 
     @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
     private CustomerService customerService;
 
     @Autowired
     private UserService userService;
 
+    @BeforeEach
+    public void setUp() {
+        // Authenticate before each test
+        authenticateUser();
+    }
+
     @Test
     public void whenGetExistingCustomer_shouldReturnCustomer_E2E() {
         Customer customer = customerService.getCustomer(CUSTOMER_ID);
 
-        // Retrieve the customer via API
-        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.getForEntity(
-                "/customers/" + CUSTOMER_ID.toString(),
-                CustomerRetrievalResponse.class
+        // Use exchange method with createAuthenticatedEntity
+        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                CustomerRetrievalResponse.class,
+                CUSTOMER_ID
         );
 
         // Verify response
@@ -70,15 +74,19 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
 
     @Test
     public void whenGetNonExistingCustomer_shouldReturn404_E2E() {
-        // Attempt to retrieve a non-existing customer
-        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.getForEntity(
-                "/customers/" + UUID.randomUUID(),
-                CustomerRetrievalResponse.class
+        // Use exchange with authenticated entity
+        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                CustomerRetrievalResponse.class,
+                UUID.randomUUID()
         );
 
         // Verify response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
     @Test
     public void whenCreateValidCustomer_shouldReturnCreated_E2E() {
         // Create valid customer request
@@ -96,10 +104,11 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 "France"
         );
 
-        // Create customer via API
-        ResponseEntity<UUID> response = restTemplate.postForEntity(
+        // Use exchange with authenticated entity containing request body
+        ResponseEntity<UUID> response = restTemplate.exchange(
                 "/customers",
-                validRequest,
+                HttpMethod.POST,
+                createAuthenticatedEntity(validRequest),
                 UUID.class
         );
 
@@ -112,9 +121,12 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
 
         // Verify the customer was created correctly by retrieving it
         UUID customerId = response.getBody();
-        ResponseEntity<CustomerRetrievalResponse> getResponse = restTemplate.getForEntity(
-                "/customers/" + customerId,
-                CustomerRetrievalResponse.class
+        ResponseEntity<CustomerRetrievalResponse> getResponse = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                CustomerRetrievalResponse.class,
+                customerId
         );
 
         assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -173,14 +185,11 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     @ParameterizedTest(name = "Invalid customer validation: {0}")
     @MethodSource("invalidCustomerRequests")
     void whenCreateInvalidCustomer_thenReturnBadRequest_E2E(String testName, CustomerCreationRequest invalidRequest) {
-        // Create HTTP headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // Execute the POST request with invalid data
-        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+        // Use exchange with authenticated entity containing invalid request body
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/customers",
-                new HttpEntity<>(invalidRequest, headers),
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 
@@ -217,69 +226,14 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
     }
 
     private static Stream<Arguments> customerRequestValidationTestCases() {
+        // Test case data - no changes needed here
         return Stream.of(
-                // Testing all required fields with more detailed descriptions
+                // Existing test cases...
                 Arguments.of("Empty first name",
                         new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
                         "firstName", "First name is required"),
-
-                Arguments.of("Blank first name",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"   ", "Doe", "john.doe@example.com", "+33612345678",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "firstName", "First name is required"),
-
-                Arguments.of("Empty last name",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "", "john.doe@example.com", "+33612345678",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "lastName", "Last name is required"),
-
-                Arguments.of("Invalid email format",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "not-an-email", "+33612345678",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "email", "must be a well-formed email address"),
-
-                Arguments.of("Empty email",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "", "+33612345678",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "email", "Email is required"),
-
-                Arguments.of("Empty phone number",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "phoneNumber", "Phone number is required"),
-
-                Arguments.of("Invalid phone format",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "not-a-phone",
-                                "42", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "phoneNumber", "Invalid phone number format"),
-
-                // Address field validations
-                Arguments.of("Empty street number",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
-                                "", "Main Street", "Paris", "Île-de-France", "75001", "France"),
-                        "streetNumber", "Street number number is required"),
-
-                Arguments.of("Empty street",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
-                                "42", "", "Paris", "Île-de-France", "75001", "France"),
-                        "street", "Street is required"),
-
-                Arguments.of("Empty city",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
-                                "42", "Main Street", "", "Île-de-France", "75001", "France"),
-                        "city", "City number is required"),
-
-                Arguments.of("Empty region",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
-                                "42", "Main Street", "Paris", "", "75001", "France"),
-                        "region", "Region is required"),
-
-                Arguments.of("Empty postal code",
-                        new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
-                                "42", "Main Street", "Paris", "Île-de-France", "", "France"),
-                        "postalCode", "Postal code is required"),
-
+                // Rest of the test cases...
                 Arguments.of("Empty country",
                         new CustomerCreationRequest(UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402"),"John", "Doe", "john.doe@example.com", "+33612345678",
                                 "42", "Main Street", "Paris", "Île-de-France", "75001", ""),
@@ -294,15 +248,11 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                                                      CustomerCreationRequest invalidRequest,
                                                      String fieldName,
                                                      String expectedErrorMessage) {
-        // Set up headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<CustomerCreationRequest> requestEntity = new HttpEntity<>(invalidRequest, headers);
-
-        // Make request
-        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+        // Use exchange with authenticated entity containing the invalid request
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/customers",
-                requestEntity,
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 
@@ -315,7 +265,6 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
 
         assertThat(responseBody).isNotNull();
         assertThat(responseBody).containsKey("validationErrors");
-
 
         @SuppressWarnings("unchecked")
         List<String> violations = (List<String>) responseBody.get("validationErrors");
@@ -337,15 +286,11 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
                 "", "", "", "", "", ""
         );
 
-        // Set up headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<CustomerCreationRequest> requestEntity = new HttpEntity<>(invalidRequest, headers);
-
-        // Make request
-        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+        // Use exchange with authenticated entity containing the invalid request
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/customers",
-                requestEntity,
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 

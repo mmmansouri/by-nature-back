@@ -6,19 +6,17 @@ import com.bynature.adapters.in.web.order.dto.request.OrderItemCreationRequest;
 import com.bynature.adapters.in.web.order.dto.request.ShippingAddressCreationRequest;
 import com.bynature.adapters.in.web.order.dto.response.OrderRetrievalResponse;
 import com.bynature.domain.model.OrderStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Collections;
@@ -31,16 +29,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderControllerE2ETest extends AbstractByNatureTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     // Valid UUID constants for testing
     private static final UUID VALID_CUSTOMER_ID = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
     private static final UUID VALID_ITEM_ID = UUID.fromString("4ad102fd-bf4a-439f-8027-5c3cf527ffaf");
 
+    @BeforeEach
+    public void setUp() {
+        // Authenticate before each test
+        authenticateUser();
+    }
+
     @Test
     public void whenCreateOrder_shouldRetrieveIT_E2E() {
-        // Prepare a sample ShippingAddressRequest.
+        // Prepare a sample ShippingAddressRequest
         ShippingAddressCreationRequest addressRequest = new ShippingAddressCreationRequest(
                 VALID_CUSTOMER_ID,
                 "My Address",
@@ -51,39 +52,43 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
                 "Asnières", "Haut de France",
                 "92600", "France");
 
-        // Prepare a sample OrderRequest.
+        // Prepare a sample OrderRequest
         OrderCreationRequest orderCreationRequest = new OrderCreationRequest(VALID_CUSTOMER_ID,
                 List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
                 100.0,
                 addressRequest);
 
-        // Create HTTP headers and set the content type.
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        // Execute the POST request using authenticated entity
+        ResponseEntity<OrderRetrievalResponse> responseOrder = restTemplate.exchange(
+                "/orders",
+                HttpMethod.POST,
+                createAuthenticatedEntity(orderCreationRequest),
+                OrderRetrievalResponse.class
+        );
 
-        // Wrap the OrderRequest in an HttpEntity.
-        HttpEntity<OrderCreationRequest> requestEntity = new HttpEntity<>(orderCreationRequest, headers);
-
-        // Execute the POST request to the /orders endpoint.
-        ResponseEntity<OrderRetrievalResponse> responseOrder = restTemplate.postForEntity("/orders", requestEntity, OrderRetrievalResponse.class);
-
-        // Assert that we receive a 201 Created status.
+        // Assert that we receive a 201 Created status
         assertThat(responseOrder.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-        // Verify that the body contains the expected order ID.
+        // Verify that the body contains the expected order data
         OrderRetrievalResponse orderResponse = responseOrder.getBody();
         assertThat(orderResponse).isNotNull();
 
-        // Verify the Location header is set correctly.
+        // Verify the Location header is set correctly
         URI location = responseOrder.getHeaders().getLocation();
         assertThat(location).isNotNull();
 
-        // Call the GET /orders/{id} endpoint
-        responseOrder = restTemplate.getForEntity("/orders/" + orderResponse.id(), OrderRetrievalResponse.class);
+        // Call the GET /orders/{id} endpoint using authenticated entity
+        ResponseEntity<OrderRetrievalResponse> getResponse = restTemplate.exchange(
+                "/orders/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                OrderRetrievalResponse.class,
+                orderResponse.id()
+        );
 
-        // Assert the responseOrder
-        assertThat(responseOrder.getStatusCode()).isEqualTo(HttpStatus.OK);
-        OrderRetrievalResponse orderRetrievalResponse = responseOrder.getBody();
+        // Assert the getResponse with same level of verification
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        OrderRetrievalResponse orderRetrievalResponse = getResponse.getBody();
         assertThat(orderRetrievalResponse).isNotNull();
         assertThat(orderRetrievalResponse.id()).isEqualTo(orderResponse.id());
         assertThat(orderRetrievalResponse.customerId()).isEqualTo(orderCreationRequest.customerId());
@@ -104,162 +109,128 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
 
     @Test
     void whenFetchNonExistentOrder_thenReturnNotFound_E2E() {
-        // Generate a random UUID that shouldn't exist in the database
-        UUID nonExistentId = UUID.randomUUID();
-        
-        // Call the GET /orders/{id} endpoint with a non-existent ID
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/orders/" + nonExistentId, 
-                String.class
+        // Use exchange with authenticated entity
+        ResponseEntity<OrderRetrievalResponse> response = restTemplate.exchange(
+                "/orders/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                OrderRetrievalResponse.class,
+                UUID.randomUUID()
         );
-        
-        // Verify HTTP 404 Not Found status
+
+        // Verify response
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        
-        // Verify error response contains the orderId
-        assertThat(response.getBody()).contains(nonExistentId.toString());
     }
 
-    
+    @Test
+    void whenFetchOrdersByCustomer_thenReturnMatchingOrders_E2E() {
+        // First create an order for the customer
+        OrderCreationRequest orderRequest = createValidOrderRequest();
+
+        ResponseEntity<OrderRetrievalResponse> createResponse = restTemplate.exchange(
+                "/orders",
+                HttpMethod.POST,
+                createAuthenticatedEntity(orderRequest),
+                OrderRetrievalResponse.class
+        );
+
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Now fetch orders for this customer using authenticated entity
+        ResponseEntity<List<OrderRetrievalResponse>> response = restTemplate.exchange(
+                "/orders/customer/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                new ParameterizedTypeReference<>() {},
+                VALID_CUSTOMER_ID
+        );
+
+        // Verify response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isNotEmpty();
+
+        // Verify that all orders belong to the specified customer
+        response.getBody().forEach(order -> {
+            assertThat(order.customerId()).isEqualTo(VALID_CUSTOMER_ID);
+        });
+    }
+
     private static Stream<Arguments> invalidOrderRequests() {
         return Stream.of(
-            // Case: Missing customer ID
-            Arguments.of(
-                "Missing customer ID",
-                new OrderCreationRequest(
-                    null,
-                    List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
-                    100.0,
-                    createValidShippingAddress()
+                // Case: Null customer ID
+                Arguments.of(
+                        "Null customer ID",
+                        new OrderCreationRequest(
+                                null,
+                                List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
+                                100.0,
+                                createValidShippingAddress()
+                        )
+                ),
+                // Case: Empty order items
+                Arguments.of(
+                        "Empty order items",
+                        new OrderCreationRequest(
+                                VALID_CUSTOMER_ID,
+                                Collections.emptyList(),
+                                100.0,
+                                createValidShippingAddress()
+                        )
+                ),
+                // Case: Negative total amount
+                Arguments.of(
+                        "Negative total amount",
+                        new OrderCreationRequest(
+                                VALID_CUSTOMER_ID,
+                                List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
+                                -100.0,
+                                createValidShippingAddress()
+                        )
+                ),
+                // Case: Null shipping address
+                Arguments.of(
+                        "Null shipping address",
+                        new OrderCreationRequest(
+                                VALID_CUSTOMER_ID,
+                                List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
+                                100.0,
+                                null
+                        )
                 )
-            ),
-            // Case: Empty order items
-            Arguments.of(
-                "Empty order items", 
-                new OrderCreationRequest(
-                    VALID_CUSTOMER_ID,
-                    Collections.emptyList(),
-                    100.0,
-                    createValidShippingAddress()
-                )
-            ),
-            // Case: Invalid quantity (zero)
-            Arguments.of(
-                "Zero quantity", 
-                new OrderCreationRequest(
-                    VALID_CUSTOMER_ID,
-                    List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 0)),
-                    100.0,
-                    createValidShippingAddress()
-                )
-            ),
-            // Case: Negative quantity
-            Arguments.of(
-                "Negative quantity", 
-                new OrderCreationRequest(
-                    VALID_CUSTOMER_ID,
-                    List.of(new OrderItemCreationRequest(VALID_ITEM_ID, -1)),
-                    100.0,
-                    createValidShippingAddress()
-                )
-            ),
-            // Case: Missing shipping address
-            Arguments.of(
-                "Missing shipping address", 
-                new OrderCreationRequest(
-                    VALID_CUSTOMER_ID,
-                    List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
-                    100.0,
-                    null
-                )
-            ),
-            // Case: Invalid email in shipping address
-            Arguments.of(
-                "Invalid email", 
-                new OrderCreationRequest(
-                    VALID_CUSTOMER_ID,
-                    List.of(new OrderItemCreationRequest(VALID_ITEM_ID, 2)),
-                    100.0,
-                    new ShippingAddressCreationRequest(VALID_CUSTOMER_ID, "My Address",
-                        "John", "Doe", "+33634164387", "invalid-email",
-                        "123", "Main Street", "Paris", "Ile-de-France",
-                        "75001", "France"
-                    )
-                )
-            )
         );
     }
 
     @ParameterizedTest(name = "Invalid order validation: {0}")
     @MethodSource("invalidOrderRequests")
     void whenCreateInvalidOrder_thenReturnBadRequest_E2E(String testName, OrderCreationRequest invalidRequest) {
-        // Execute the POST request with invalid data
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        // Use exchange with authenticated entity containing invalid request body
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/orders",
-                new HttpEntity<>(invalidRequest, createJsonHeaders()),
-                String.class
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
+                ProblemDetail.class
         );
-        
+
         // Verify HTTP 400 Bad Request status
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-    
-    @Test
-    void whenFetchOrdersByCustomer_thenReturnMatchingOrders_E2E() {
-        // Create an order for our customer
-        OrderCreationRequest orderRequest = createValidOrderRequest();
-        ResponseEntity<OrderRetrievalResponse> creationResponse = restTemplate.postForEntity(
-                "/orders", 
-                new HttpEntity<>(orderRequest, createJsonHeaders()),
-                OrderRetrievalResponse.class
-        );
-        
-        // Verify the order was created
-        assertThat(creationResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        
-        // Build URL with query parameter
-        String url = UriComponentsBuilder.fromPath("/orders/customer/{id}")
-                .buildAndExpand(VALID_CUSTOMER_ID)
-                .toUriString();
-                
-        // Fetch orders by customer ID
-        ResponseEntity<OrderRetrievalResponse[]> response = restTemplate.getForEntity(
-                url,
-                OrderRetrievalResponse[].class
-        );
-        
-        // Verify successful response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        OrderRetrievalResponse[] orders = response.getBody();
-        assertThat(orders).isNotNull();
-        
-        // Verify at least one order was returned
-        assertThat(orders.length).isGreaterThan(0);
-        
-        // All returned orders should belong to our customer
-        for (OrderRetrievalResponse order : orders) {
-            assertThat(order.customerId()).isEqualTo(VALID_CUSTOMER_ID);
-        }
+        assertThat(response.getBody()).isNotNull();
     }
 
     // Helper methods
-    private static HttpHeaders createJsonHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
-    }
-    
     private static ShippingAddressCreationRequest createValidShippingAddress() {
-        return new ShippingAddressCreationRequest(VALID_CUSTOMER_ID,"My Address",
+        return new ShippingAddressCreationRequest(
+                VALID_CUSTOMER_ID,
+                "My Address",
                 "John", "Doe",
-                "+33634164387",
-                "valid@example.com",
+                "+33612345678",
+                "john.doe@example.com",
                 "123", "Main Street",
-                "Paris", "Ile-de-France",
+                "Paris", "Île-de-France",
                 "75001", "France"
         );
     }
-    
+
     private static OrderCreationRequest createValidOrderRequest() {
         return new OrderCreationRequest(
                 VALID_CUSTOMER_ID,

@@ -8,6 +8,7 @@ import com.bynature.adapters.in.web.user.dto.UserRetrievalResponse;
 import com.bynature.domain.model.Role;
 import com.bynature.domain.model.User;
 import com.bynature.domain.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,12 +16,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
@@ -37,18 +34,23 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     private static final UUID USER_ID = UUID.fromString("b47ac10b-58cc-4372-a567-0e02b2c3d402");
 
     @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
     private UserService userService;
+
+    @BeforeEach
+    public void setUp() {
+        // Authenticate before each test
+        authenticateUser();
+    }
 
     @Test
     @DisplayName("When get existing user, should return user - E2E")
     public void whenGetExistingUser_shouldReturnUser_E2E() {
         User user = userService.getUser(USER_ID);
 
-        ResponseEntity<UserRetrievalResponse> response = restTemplate.getForEntity(
+        ResponseEntity<UserRetrievalResponse> response = restTemplate.exchange(
                 "/users/" + USER_ID,
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 UserRetrievalResponse.class
         );
 
@@ -65,8 +67,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     @Test
     @DisplayName("When get non-existing user, should return 404 - E2E")
     public void whenGetNonExistingUser_shouldReturn404_E2E() {
-        ResponseEntity<UserRetrievalResponse> response = restTemplate.getForEntity(
+        ResponseEntity<UserRetrievalResponse> response = restTemplate.exchange(
                 "/users/" + UUID.randomUUID(),
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 UserRetrievalResponse.class
         );
 
@@ -81,9 +85,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
                 "P@ssw0rd1"
         );
 
-        ResponseEntity<UUID> response = restTemplate.postForEntity(
+        ResponseEntity<UUID> response = restTemplate.exchange(
                 "/users",
-                validRequest,
+                HttpMethod.POST,
+                createAuthenticatedEntity(validRequest),
                 UUID.class
         );
 
@@ -92,8 +97,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
         assertThat(response.getHeaders().getLocation()).isNotNull();
 
         UUID userId = response.getBody();
-        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.getForEntity(
+        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.exchange(
                 "/users/" + userId,
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 UserRetrievalResponse.class
         );
 
@@ -109,24 +116,28 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     @DisplayName("Should successfully activate a user")
     public void whenActivateUser_shouldUpdateActiveStatusToTrue() {
         // First deactivate the user
-        restTemplate.put(
+        restTemplate.exchange(
                 "/users/" + USER_ID + "/deactivate",
-                null
+                HttpMethod.PUT,
+                createAuthenticatedEntity(),
+                Void.class
         );
 
         // Then activate the user
         ResponseEntity<Void> response = restTemplate.exchange(
                 "/users/" + USER_ID + "/activate",
                 HttpMethod.PUT,
-                null,
+                createAuthenticatedEntity(),
                 Void.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Verify the user was activated
-        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.getForEntity(
+        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.exchange(
                 "/users/" + USER_ID,
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 UserRetrievalResponse.class
         );
 
@@ -137,55 +148,74 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     @Test
     @DisplayName("Should successfully deactivate a user")
     public void whenDeactivateUser_shouldUpdateActiveStatusToFalse() {
-        // First activate the user
-        restTemplate.put(
-                "/users/" + USER_ID + "/activate",
-                null
-        );
+        try {
+            // First activate the user
+            restTemplate.exchange(
+                    "/users/" + USER_ID + "/activate",
+                    HttpMethod.PUT,
+                    createAuthenticatedEntity(),
+                    Void.class
+            );
 
-        // Then deactivate the user
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/users/" + USER_ID + "/deactivate",
-                HttpMethod.PUT,
-                null,
-                Void.class
-        );
+            // Deactivate the user (the operation being tested)
+            ResponseEntity<Void> response = restTemplate.exchange(
+                    "/users/" + USER_ID + "/deactivate",
+                    HttpMethod.PUT,
+                    createAuthenticatedEntity(),
+                    Void.class
+            );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        // Verify the user was deactivated
-        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.getForEntity(
-                "/users/" + USER_ID,
-                UserRetrievalResponse.class
-        );
+            // Verify the user was deactivated
+            ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.exchange(
+                    "/users/" + USER_ID,
+                    HttpMethod.GET,
+                    createAuthenticatedEntity(),
+                    UserRetrievalResponse.class
+            );
 
-        assertThat(getResponse.getBody()).isNotNull();
-        assertThat(getResponse.getBody().active()).isFalse();
+            assertThat(getResponse.getBody()).isNotNull();
+            assertThat(getResponse.getBody().active()).isFalse();
+        } finally {
+            // Rollback: Reactivate the user to restore the original state
+            ResponseEntity<Void> rollbackResponse = restTemplate.exchange(
+                    "/users/" + USER_ID + "/activate",
+                    HttpMethod.PUT,
+                    createAuthenticatedEntity(),
+                    Void.class
+            );
+
+            // Verify rollback was successful
+            if (rollbackResponse.getStatusCode() != HttpStatus.NO_CONTENT) {
+                System.err.println("WARNING: Failed to reactivate user during test rollback");
+            }
+        }
     }
 
     private static Stream<Arguments> invalidUserRequests() {
         return Stream.of(
                 Arguments.of("Empty email",
                         new UserCreationRequest("", "P@ssw0rd1"),
-                        "email", "Email is required"),
+                        "email", "must not be empty"),
                 Arguments.of("Invalid email format",
-                        new UserCreationRequest("not-an-email", "P@ssw0rd1"),
-                        "email", "Invalid email format"),
+                        new UserCreationRequest("invalid-email", "P@ssw0rd1"),
+                        "email", "must be a well-formed email address"),
                 Arguments.of("Empty password",
-                        new UserCreationRequest("user@example.com", ""),
-                        "password", "Password is required"),
+                        new UserCreationRequest("valid@example.com", ""),
+                        "password", "must not be empty"),
                 Arguments.of("Weak password - no special character",
-                        new UserCreationRequest("user@example.com", "Password123"),
-                        "password", "Password must be at least 8 characters"),
+                        new UserCreationRequest("valid@example.com", "Password123"),
+                        "password", "weak password"),
                 Arguments.of("Weak password - no uppercase",
-                        new UserCreationRequest("user@example.com", "password@123"),
-                        "password", "Password must be at least 8 characters"),
+                        new UserCreationRequest("valid@example.com", "password@123"),
+                        "password", "weak password"),
                 Arguments.of("Weak password - no lowercase",
-                        new UserCreationRequest("user@example.com", "PASSWORD@123"),
-                        "password", "Password must be at least 8 characters"),
+                        new UserCreationRequest("valid@example.com", "PASSWORD@123"),
+                        "password", "weak password"),
                 Arguments.of("Weak password - no digit",
-                        new UserCreationRequest("user@example.com", "Password@ABC"),
-                        "password", "Password must be at least 8 characters")
+                        new UserCreationRequest("valid@example.com", "Password@abc"),
+                        "password", "weak password")
         );
     }
 
@@ -196,13 +226,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
                                                  UserCreationRequest invalidRequest,
                                                  String fieldName,
                                                  String expectedErrorMessage) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<UserCreationRequest> requestEntity = new HttpEntity<>(invalidRequest, headers);
-
-        ResponseEntity<ProblemDetail> response = restTemplate.postForEntity(
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/users",
-                requestEntity,
+                HttpMethod.POST,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 
@@ -245,29 +272,54 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     @Test
     @DisplayName("Should successfully update user email")
     public void whenUpdateUserEmail_shouldUpdateEmail() {
-        // Create email update request
-        UserEmailUpdateRequest updateRequest = new UserEmailUpdateRequest("updated.email@example.com");
-
-        // Update the user's email
-        HttpEntity<UserEmailUpdateRequest> requestEntity = new HttpEntity<>(updateRequest);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/users/" + USER_ID + "/email",
-                HttpMethod.PATCH,
-                requestEntity,
-                Void.class
-        );
-
-        // Verify response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-
-        // Verify the email was updated
-        ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.getForEntity(
+        // Get original email before updating
+        ResponseEntity<UserRetrievalResponse> initialResponse = restTemplate.exchange(
                 "/users/" + USER_ID,
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 UserRetrievalResponse.class
         );
 
-        assertThat(getResponse.getBody()).isNotNull();
-        assertThat(getResponse.getBody().email()).isEqualTo("updated.email@example.com");
+        assertThat(initialResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(initialResponse.getBody()).isNotNull();
+        String originalEmail = initialResponse.getBody().email();
+
+        try {
+            // Create email update request
+            UserEmailUpdateRequest updateRequest = new UserEmailUpdateRequest("updated.email@example.com");
+
+            // Update the user's email
+            ResponseEntity<Void> response = restTemplate.exchange(
+                    "/users/" + USER_ID + "/email",
+                    HttpMethod.PATCH,
+                    createAuthenticatedEntity(updateRequest),
+                    Void.class
+            );
+
+            // Verify response
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+            // Verify the email was updated
+            ResponseEntity<UserRetrievalResponse> getResponse = restTemplate.exchange(
+                    "/users/" + USER_ID,
+                    HttpMethod.GET,
+                    createAuthenticatedEntity(),
+                    UserRetrievalResponse.class
+            );
+
+            assertThat(getResponse.getBody()).isNotNull();
+            assertThat(getResponse.getBody().email()).isEqualTo("updated.email@example.com");
+        } finally {
+            // Rollback - restore the original email
+            UserEmailUpdateRequest rollbackRequest = new UserEmailUpdateRequest(originalEmail);
+
+            restTemplate.exchange(
+                    "/users/" + USER_ID + "/email",
+                    HttpMethod.PATCH,
+                    createAuthenticatedEntity(rollbackRequest),
+                    Void.class
+            );
+        }
     }
 
     @Test
@@ -277,11 +329,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
         UserEmailUpdateRequest invalidRequest = new UserEmailUpdateRequest("invalid-email");
 
         // Attempt to update with invalid email
-        HttpEntity<UserEmailUpdateRequest> requestEntity = new HttpEntity<>(invalidRequest);
         ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/users/" + USER_ID + "/email",
                 HttpMethod.PATCH,
-                requestEntity,
+                createAuthenticatedEntity(invalidRequest),
                 ProblemDetail.class
         );
 
@@ -292,23 +343,57 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
     @Test
     @DisplayName("Should successfully update user password")
     public void whenUpdateUserPassword_shouldUpdatePassword() {
-        // Create password update request
-        UserPasswordUpdateRequest updateRequest = new UserPasswordUpdateRequest(
-                "OldP@ssw0rd",
-                "NewP@ssw0rd123"
-        );
+        // Define the test passwords
+        String newTestPassword = "NewStrongP@ssw0rd123";
+        String originalPassword = "Str0ngP@ssword123!"; // Original password from test setup
 
-        // Update the user's password
-        HttpEntity<UserPasswordUpdateRequest> requestEntity = new HttpEntity<>(updateRequest);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/users/" + USER_ID + "/password",
-                HttpMethod.PUT,
-                requestEntity,
-                Void.class
-        );
+        try {
+            // Create password update request
+            UserPasswordUpdateRequest updateRequest = new UserPasswordUpdateRequest(
+                    originalPassword,  // Current password
+                    newTestPassword    // New password
+            );
 
-        // Verify response
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+            // Update the password
+            ResponseEntity<Void> updateResponse = restTemplate.exchange(
+                    "/users/" + USER_ID + "/password",
+                    HttpMethod.PUT,
+                    createAuthenticatedEntity(updateRequest),
+                    Void.class
+            );
+
+            // Verify successful update
+            assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+            // Clear the authentication context - important to force reauthentication!
+            this.accessToken = null;
+
+            // Verify we can authenticate with the new password
+            String newToken = obtainAccessToken("john.doe@example.com", newTestPassword);
+            assertThat(newToken).isNotNull();
+
+        } finally {
+            // Restore the original password regardless of test outcome
+            // We need to be authenticated again first
+            if (this.accessToken == null) {
+                authenticateUser("john.doe@example.com", newTestPassword);
+            }
+
+            UserPasswordUpdateRequest rollbackRequest = new UserPasswordUpdateRequest(
+                    newTestPassword,  // Current password (the one we just set)
+                    originalPassword  // Original password to restore
+            );
+
+            restTemplate.exchange(
+                    "/users/" + USER_ID + "/password",
+                    HttpMethod.PUT,
+                    createAuthenticatedEntity(rollbackRequest),
+                    Void.class
+            );
+
+            // Reset token
+            this.accessToken = null;
+        }
     }
 
     @Test
@@ -321,11 +406,10 @@ public class UserControllerE2ETest extends AbstractByNatureTest {
         );
 
         // Attempt to update with weak password
-        HttpEntity<UserPasswordUpdateRequest> requestEntity = new HttpEntity<>(weakPasswordRequest);
         ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 "/users/" + USER_ID + "/password",
                 HttpMethod.PUT,
-                requestEntity,
+                createAuthenticatedEntity(weakPasswordRequest),
                 ProblemDetail.class
         );
 

@@ -1,6 +1,5 @@
 package com.bynature.adapters.out.persistence.jpa;
 
-import com.bynature.AbstractByNatureTest;
 import com.bynature.adapters.out.persistence.jpa.adapter.CustomerRepositoryAdapter;
 import com.bynature.adapters.out.persistence.jpa.adapter.ShippingAddressRepositoryAdapter;
 import com.bynature.domain.exception.ShippingAddressNotFoundException;
@@ -11,8 +10,6 @@ import com.bynature.domain.model.ShippingAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,10 +24,9 @@ import java.util.concurrent.TimeoutException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DataJpaTest
-@EnableAutoConfiguration
+
 @ContextConfiguration(classes = {ShippingAddressRepositoryAdapter.class, CustomerRepositoryAdapter.class})
-public class ShippingAddressJpaTest extends AbstractByNatureTest {
+public class ShippingAddressJpaTest extends AbstractJpaTest {
 
     @Autowired
     private ShippingAddressRepositoryAdapter shippingAddressRepositoryAdapter;

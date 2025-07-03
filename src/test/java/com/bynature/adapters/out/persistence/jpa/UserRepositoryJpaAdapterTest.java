@@ -1,6 +1,5 @@
 package com.bynature.adapters.out.persistence.jpa;
 
-import com.bynature.AbstractByNatureTest;
 import com.bynature.adapters.out.persistence.jpa.adapter.CustomerRepositoryAdapter;
 import com.bynature.adapters.out.persistence.jpa.adapter.UserRepositoryAdapter;
 import com.bynature.domain.exception.UserNotFoundException;
@@ -14,8 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Propagation;
@@ -28,11 +25,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DataJpaTest
-@EnableAutoConfiguration
+
 @ContextConfiguration(classes = {UserRepositoryAdapter.class, CustomerRepositoryAdapter.class})
 @DisplayName("User JPA Adapter Tests")
-public class UserRepositoryJpaAdapterTest extends AbstractByNatureTest {
+public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
 
     @Autowired
     private UserRepositoryAdapter userRepositoryAdapter;

@@ -3,13 +3,13 @@ package com.bynature.adapters.in.web.payment;
 import com.bynature.AbstractByNatureTest;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -22,8 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PaymentIntentControllerE2E extends AbstractByNatureTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @BeforeEach
+    public void setUp() {
+        // Authenticate before each test
+        authenticateUser();
+    }
 
     @Test
     public void whenCreatePaymentIntent_thenReturnSuccessfulResponse_E2E() {
@@ -40,9 +43,10 @@ public class PaymentIntentControllerE2E extends AbstractByNatureTest {
         );
 
         // When
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/create-payment-intent",
-                request,
+                HttpMethod.POST,
+                createAuthenticatedEntity(request),
                 String.class
         );
 
@@ -71,26 +75,26 @@ public class PaymentIntentControllerE2E extends AbstractByNatureTest {
 
     private static Stream<Arguments> invalidRequestsProvider() {
         return Stream.of(
-            Arguments.of(
-                "Invalid amount (too low)",
-                new PaymentIntentRequest(3L, "test@example.com", "Test Product",
-                    UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
-            ),
-            Arguments.of(
-                "Invalid email format",
-                new PaymentIntentRequest(10L, "not-an-email", "Test Product",
-                    UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
-            ),
-            Arguments.of(
-                "Empty product name",
-                new PaymentIntentRequest(10L, "test@example.com", "",
-                    UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
-            ),
-            Arguments.of(
-                "Empty customer ID",
-                new PaymentIntentRequest(10L, "test@example.com", "Test Product",
-                    UUID.randomUUID(), "", "+33612345678", "PENDING")
-            )
+                Arguments.of(
+                        "Invalid amount (too low)",
+                        new PaymentIntentRequest(3L, "test@example.com", "Test Product",
+                                UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
+                ),
+                Arguments.of(
+                        "Invalid email format",
+                        new PaymentIntentRequest(10L, "not-an-email", "Test Product",
+                                UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
+                ),
+                Arguments.of(
+                        "Empty product name",
+                        new PaymentIntentRequest(10L, "test@example.com", "",
+                                UUID.randomUUID(), "customer123", "+33612345678", "PENDING")
+                ),
+                Arguments.of(
+                        "Empty customer ID",
+                        new PaymentIntentRequest(10L, "test@example.com", "Test Product",
+                                UUID.randomUUID(), "", "+33612345678", "PENDING")
+                )
         );
     }
 
@@ -98,9 +102,10 @@ public class PaymentIntentControllerE2E extends AbstractByNatureTest {
     @MethodSource("invalidRequestsProvider")
     void whenCreatePaymentIntentWithInvalidData_thenReturnBadRequest_E2E(String testName, PaymentIntentRequest request) {
         // When
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/create-payment-intent",
-                request,
+                HttpMethod.POST,
+                createAuthenticatedEntity(request),
                 String.class
         );
 
@@ -122,9 +127,10 @@ public class PaymentIntentControllerE2E extends AbstractByNatureTest {
         );
 
         // When
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.exchange(
                 "/create-payment-intent",
-                request,
+                HttpMethod.POST,
+                createAuthenticatedEntity(request),
                 String.class
         );
 
@@ -147,9 +153,10 @@ public class PaymentIntentControllerE2E extends AbstractByNatureTest {
 
         try {
             // When
-            ResponseEntity<String> response = restTemplate.postForEntity(
+            ResponseEntity<String> response = restTemplate.exchange(
                     "/create-payment-intent",
-                    request,
+                    HttpMethod.POST,
+                    createAuthenticatedEntity(request),
                     String.class
             );
 
