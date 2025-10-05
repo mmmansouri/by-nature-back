@@ -19,7 +19,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080
+          issuer-uri: bynature
+
 
 stripe:
   api:
@@ -31,6 +32,7 @@ stripe:
 logging:
   level:
     root: INFO
+    org.springframework.security: DEBUG
 
 application:
   security:

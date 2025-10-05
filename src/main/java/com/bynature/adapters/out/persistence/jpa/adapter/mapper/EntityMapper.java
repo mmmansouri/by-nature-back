@@ -1,11 +1,13 @@
 package com.bynature.adapters.out.persistence.jpa.adapter.mapper;
 
 
+import com.bynature.adapters.out.persistence.jpa.entity.AppClientEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.CustomerEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.ItemEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.OrderEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.ShippingAddressEntity;
 import com.bynature.adapters.out.persistence.jpa.entity.UserEntity;
+import com.bynature.domain.model.AppClient;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.Item;
@@ -25,6 +27,18 @@ public final class EntityMapper {
 
     // Private constructor to prevent instantiation
     private EntityMapper() {}
+
+    public static AppClient mapAppClientToDomain(AppClientEntity entity) {
+        if (entity == null) return null;
+
+        return new AppClient(
+                entity.getId(),
+                entity.getAppClientId(),
+                entity.getAppClientSecret(),
+                entity.isActive(),
+                entity.getAllowedOrigin()
+        );
+    }
 
     public static User mapUserToDomain(UserEntity entity) {
         if (entity == null) return null;

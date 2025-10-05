@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +54,9 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
 
     @BeforeEach
     void setup() {
+        // Authenticate before each test
+        authenticateUser();
+
         // Create a test order
         OrderCreationRequest orderRequest = createValidOrderRequest();
         ResponseEntity<OrderRetrievalResponse> response = restTemplate.postForEntity(
@@ -252,7 +256,7 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
     }
 
     private ResponseEntity<String> sendWebhookRequest(String payload, String signature) {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = createAuthenticatedHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Stripe-Signature", signature);
 
@@ -261,8 +265,10 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
     }
 
     private OrderRetrievalResponse retrieveOrder(UUID orderId) {
-        return restTemplate.getForEntity(
+        return restTemplate.exchange(
                 "/orders/" + orderId,
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
                 OrderRetrievalResponse.class
         ).getBody();
     }
@@ -368,8 +374,8 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
         return event;
     }
 
-    private static HttpHeaders createJsonHeaders() {
-        HttpHeaders headers = new HttpHeaders();
+    private HttpHeaders createJsonHeaders() {
+        HttpHeaders headers = createAuthenticatedHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }

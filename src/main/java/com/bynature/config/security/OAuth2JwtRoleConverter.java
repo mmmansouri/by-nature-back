@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class OAuth2JwtRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
@@ -17,23 +16,18 @@ public class OAuth2JwtRoleConverter implements Converter<Jwt, Collection<Granted
 
     @Override
     public Collection<GrantedAuthority> convert(Jwt jwt) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
 
         // Add scopes as authorities with SCOPE_ prefix
         List<String> scopes = extractClaim(jwt, SCOPE_CLAIM);
-        if (scopes != null) {
-            authorities.addAll(scopes.stream()
-                    .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
-                    .collect(Collectors.toList()));
-        }
+        List<GrantedAuthority> authorities = new ArrayList<>(scopes.stream()
+                .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
+                .toList());
 
         // Add roles as authorities with ROLE_ prefix
         List<String> roles = extractClaim(jwt, ROLE_CLAIM);
-        if (roles != null) {
-            authorities.addAll(roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(Collectors.toList()));
-        }
+        authorities.addAll(roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .toList());
 
         return authorities;
     }

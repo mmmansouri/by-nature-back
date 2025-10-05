@@ -1,3 +1,14 @@
+create table app_clients
+(
+    id                uuid         not null,
+    app_client_id     varchar(255) not null unique,
+    app_client_secret varchar(255) not null,
+    active            boolean      not null default true,
+    allowed_origin    varchar(255) not null,
+    primary key (id)
+);
+
+
 create table users
 (
     id            uuid         not null,

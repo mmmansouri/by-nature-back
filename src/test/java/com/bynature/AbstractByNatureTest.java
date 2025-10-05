@@ -2,7 +2,7 @@ package com.bynature;
 
 import com.bynature.adapters.in.web.auth.dto.AuthResponse;
 import com.bynature.adapters.in.web.auth.dto.LoginRequest;
-import com.bynature.config.TestSecurityConfig;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
@@ -18,7 +18,6 @@ import org.springframework.test.context.TestPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
 @TestPropertySource(locations = "classpath:application-test.yml")
 public abstract class AbstractByNatureTest {
 

@@ -8,6 +8,10 @@ databaseChangeLog:
             splitStatements: true
             stripComments: true
         - sqlFile:
+            path: db/changelog/V1_initial_app_client_data.sql
+            splitStatements: true
+            stripComments: true
+        - sqlFile:
             path: db/changelog/V1_initial_items_data.sql
             splitStatements: true
             stripComments: true
