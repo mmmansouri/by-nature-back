@@ -2,12 +2,15 @@ package com.bynature.adapters.in.web.payment;
 
 import com.bynature.domain.model.OrderStatus;
 import com.bynature.domain.service.OrderService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Charge;
 import com.stripe.model.Event;
-import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,23 +18,32 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+/**
+ * Modern Stripe Webhook Controller
+ * Uses Java 23+ features: pattern matching, switch expressions, records
+ * SLF4J for logging with Spring Boot best practices
+ */
 @RestController
 public class StripeWebhookController {
-    private static final Logger logger = Logger.getLogger(StripeWebhookController.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(StripeWebhookController.class);
 
-    @Value("${stripe.webhook.secret}")
-    private String endpointSecret;
-
+    private final String webhookSecret;
     private final OrderService orderService;
     private final StripeWebhookVerifier webhookVerifier;
+    private final ObjectMapper objectMapper;
 
-    public StripeWebhookController(OrderService orderService, StripeWebhookVerifier webhookVerifier) {
+    public StripeWebhookController(
+            @Value("${stripe.webhook.secret}") String webhookSecret,
+            OrderService orderService,
+            StripeWebhookVerifier webhookVerifier,
+            ObjectMapper objectMapper) {
+        this.webhookSecret = webhookSecret;
         this.orderService = orderService;
         this.webhookVerifier = webhookVerifier;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/webhook/stripe")
@@ -39,103 +51,188 @@ public class StripeWebhookController {
             @RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sigHeader) {
 
-        Event event;
+        log.info("🔔 Webhook received! Payload: {} bytes", payload.length());
+        log.debug("🔑 Signature: {}...", sigHeader.substring(0, Math.min(50, sigHeader.length())));
+
+        // Verify webhook signature
+        Event event = verifyWebhookSignature(payload, sigHeader)
+                .orElseGet(() -> null);
+
+        if (event == null) {
+            return ResponseEntity.badRequest().body("Invalid signature");
+        }
+
+        log.info("✅ Webhook verified: {}", event.getType());
+
+        // Process event with fallback to raw JSON parsing
+        return processEvent(event);
+    }
+
+    private Optional<Event> verifyWebhookSignature(String payload, String signature) {
+        try {
+            Event event = webhookVerifier.verifyAndParseEvent(payload, signature, webhookSecret);
+            return Optional.of(event);
+        } catch (SignatureVerificationException e) {
+            log.warn("❌ Signature verification failed: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private ResponseEntity<String> processEvent(Event event) {
+        return event.getDataObjectDeserializer()
+                .getObject()
+                .map(obj -> processDeserializedEvent(event.getType(), obj))
+                .orElseGet(() -> processRawJsonEvent(event));
+    }
+
+    private ResponseEntity<String> processDeserializedEvent(String eventType, StripeObject stripeObject) {
+        try {
+            return switch (StripeEvent.fromString(eventType)) {
+                case PAYMENT_INTENT_CREATED -> handlePaymentIntentCreated(stripeObject);
+                case PAYMENT_INTENT_SUCCEEDED -> handlePaymentIntentSucceeded(stripeObject);
+                case CHARGE_SUCCEEDED -> handleChargeSucceeded(stripeObject);
+                case PAYMENT_INTENT_PAYMENT_FAILED -> handlePaymentIntentFailed(stripeObject);
+                case CHARGE_FAILED -> handleChargeFailed(stripeObject);
+                default -> {
+                    log.info("ℹ️  Unhandled event type: {}", eventType);
+                    yield ResponseEntity.ok("Event acknowledged");
+                }
+            };
+        } catch (Exception e) {
+            log.error("❌ Error processing event: {}", eventType, e);
+            return ResponseEntity.internalServerError()
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
+    private ResponseEntity<String> processRawJsonEvent(Event event) {
+        String rawJson = event.getDataObjectDeserializer().getRawJson();
+        log.warn("⚠️  Deserialization issue, using raw JSON (length: {} chars)", rawJson.length());
 
         try {
-            event = webhookVerifier.verifyAndParseEvent(payload, sigHeader, endpointSecret);
-        } catch (SignatureVerificationException e) {
-            logger.warning("Signature invalide: " + e.getMessage());
-            return ResponseEntity.badRequest().body("Signature invalide");
+            JsonNode data = objectMapper.readTree(rawJson);
+            return extractOrderIdFromMetadata(data)
+                    .map(orderId -> processRawEvent(event.getType(), orderId, data))
+                    .orElseGet(() -> {
+                        log.warn("⚠️  No orderId in metadata for {}", event.getType());
+                        return ResponseEntity.ok("Event acknowledged (no orderId)");
+                    });
+        } catch (Exception e) {
+            log.error("❌ Error processing raw JSON event", e);
+            return ResponseEntity.internalServerError()
+                    .body("Error: " + e.getMessage());
         }
+    }
 
-        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
-        StripeObject stripeObject;
+    private Optional<UUID> extractOrderIdFromMetadata(JsonNode data) {
+        return Optional.ofNullable(data.path("metadata").path("orderId").asText(null))
+                .map(UUID::fromString);
+    }
 
-        if (dataObjectDeserializer.getObject().isPresent()) {
-            stripeObject = dataObjectDeserializer.getObject().get();
-            logger.info("Event received: " + event.getType());
-            switch (StripeEvent.fromString(event.getType())) {
-                case PAYMENT_INTENT_CREATED:
-                    handlePaymentIntentCreated(stripeObject);
-                    break;
-                case PAYMENT_INTENT_SUCCEEDED:
-                    handleSuccessfulPayment(stripeObject);
-                    break;
-                case CHARGE_SUCCEEDED:
-                    handleSuccessfulCharge(stripeObject);
-                    break;
-                case PAYMENT_INTENT_PAYMENT_FAILED:
-                    handleFailedPayment(stripeObject);
-                    break;
-                case CHARGE_FAILED:
-                    handleChargeFailed(stripeObject);
-                    break;
-                default:
-                    logger.info("Événement non géré: " + event.getType());
+    private ResponseEntity<String> processRawEvent(String eventType, UUID orderId, JsonNode data) {
+        log.info("✅ Processing {} for orderId: {}", eventType, orderId);
+
+        return switch (StripeEvent.fromString(eventType)) {
+            case PAYMENT_INTENT_CREATED -> {
+                String clientSecret = data.path("client_secret").asText(null);
+                orderService.updateOrderStatus(orderId, OrderStatus.PAYMENT_INTEND_CREATED, clientSecret);
+                yield ResponseEntity.ok("Payment intent created");
             }
+            case PAYMENT_INTENT_SUCCEEDED -> {
+                orderService.updateOrderStatus(orderId, OrderStatus.PAYMENT_PROCESSING);
+                yield ResponseEntity.ok("Payment processing");
+            }
+            case CHARGE_SUCCEEDED -> {
+                orderService.updateOrderStatus(orderId, OrderStatus.PAYMENT_CONFIRMED);
+                yield ResponseEntity.ok("Payment confirmed");
+            }
+            case PAYMENT_INTENT_PAYMENT_FAILED, CHARGE_FAILED -> {
+                orderService.updateOrderStatus(orderId, OrderStatus.PAYMENT_FAILED);
+                yield ResponseEntity.ok("Payment failed");
+            }
+            default -> {
+                log.info("ℹ️  Unhandled event type: {}", eventType);
+                yield ResponseEntity.ok("Event acknowledged");
+            }
+        };
+    }
 
-            return ResponseEntity.ok("Événement reçu");
-        } else {
-            logger.warning("Failed to deserialize Stripe object : " + dataObjectDeserializer.getRawJson());
-            return ResponseEntity.badRequest().body("Failed to deserialize Stripe object: " + dataObjectDeserializer.getRawJson());
+    // Modern handler methods using pattern matching and clean code
+
+    private ResponseEntity<String> handlePaymentIntentCreated(StripeObject stripeObject) {
+        if (stripeObject instanceof PaymentIntent paymentIntent) {
+            String orderId = paymentIntent.getMetadata().get("orderId");
+            String clientSecret = paymentIntent.getClientSecret();
+
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderId),
+                    OrderStatus.PAYMENT_INTEND_CREATED,
+                    clientSecret
+            );
+
+            log.info("Payment intent created: {}, orderId: {}", paymentIntent.getId(), orderId);
+            return ResponseEntity.ok("Payment intent created");
         }
+        return ResponseEntity.badRequest().body("Invalid payment intent object");
     }
 
-    private static PaymentIntent getPaymentIntent(StripeObject stripeObject) {
-        PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
-        assert paymentIntent != null;
-        return paymentIntent;
+    private ResponseEntity<String> handlePaymentIntentSucceeded(StripeObject stripeObject) {
+        if (stripeObject instanceof PaymentIntent paymentIntent) {
+            String orderId = paymentIntent.getMetadata().get("orderId");
+
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderId),
+                    OrderStatus.PAYMENT_PROCESSING
+            );
+
+            log.info("Payment processing: {}, orderId: {}", paymentIntent.getId(), orderId);
+            return ResponseEntity.ok("Payment processing");
+        }
+        return ResponseEntity.badRequest().body("Invalid payment intent object");
     }
 
-    private static Charge getCharge(StripeObject stripeObject) {
-        Charge charge = (Charge) stripeObject;
-        assert charge != null;
-        return charge;
+    private ResponseEntity<String> handleChargeSucceeded(StripeObject stripeObject) {
+        if (stripeObject instanceof Charge charge) {
+            String orderId = charge.getMetadata().get("orderId");
+
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderId),
+                    OrderStatus.PAYMENT_CONFIRMED
+            );
+
+            log.info("Payment confirmed: {}, orderId: {}", charge.getId(), orderId);
+            return ResponseEntity.ok("Payment confirmed");
+        }
+        return ResponseEntity.badRequest().body("Invalid charge object");
     }
 
-    private void handlePaymentIntentCreated(StripeObject paymentIntentObject) {
-        PaymentIntent paymentIntent = getPaymentIntent(paymentIntentObject);
-        String orderId = paymentIntent.getMetadata().get("orderId");
-        String paymentIntentId = paymentIntent.getClientSecret();
-        orderService.updateOrderStatus(UUID.fromString(orderId), OrderStatus.PAYMENT_INTEND_CREATED, paymentIntentId);
+    private ResponseEntity<String> handlePaymentIntentFailed(StripeObject stripeObject) {
+        if (stripeObject instanceof PaymentIntent paymentIntent) {
+            String orderId = paymentIntent.getMetadata().get("orderId");
 
-        logger.log(Level.INFO, "Payment intent created: {0}, orderId: {1}",
-                new Object[]{paymentIntent.getId(), orderId});
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderId),
+                    OrderStatus.PAYMENT_FAILED
+            );
+
+            log.info("Payment failed: {}, orderId: {}", paymentIntent.getId(), orderId);
+            return ResponseEntity.ok("Payment failed");
+        }
+        return ResponseEntity.badRequest().body("Invalid payment intent object");
     }
 
-    private void handleSuccessfulPayment(StripeObject paymentIntentObject) {
-        PaymentIntent paymentIntent = getPaymentIntent(paymentIntentObject);
-        String orderId = paymentIntent.getMetadata().get("orderId");
-        orderService.updateOrderStatus(UUID.fromString(orderId), OrderStatus.PAYMENT_PROCESSING);
+    private ResponseEntity<String> handleChargeFailed(StripeObject stripeObject) {
+        if (stripeObject instanceof Charge charge) {
+            String orderId = charge.getMetadata().get("orderId");
 
-        logger.log(Level.INFO, "Payment processing: {0}, orderId: {1}",
-                new Object[]{paymentIntent.getId(), orderId});
-    }
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderId),
+                    OrderStatus.PAYMENT_FAILED
+            );
 
-    private void handleSuccessfulCharge(StripeObject paymentIntentObject) {
-        Charge paymentCharge = getCharge(paymentIntentObject);
-        String orderId = paymentCharge.getMetadata().get("orderId");
-        orderService.updateOrderStatus(UUID.fromString(orderId), OrderStatus.PAYMENT_CONFIRMED);
-
-        logger.log(Level.INFO, "Payment confirmed: {0}, orderId: {1}",
-                new Object[]{paymentCharge.getId(), orderId});
-    }
-
-    private void handleFailedPayment(StripeObject paymentIntentObject) {
-        PaymentIntent paymentIntent = getPaymentIntent(paymentIntentObject);
-        String orderId = paymentIntent.getMetadata().get("orderId");
-        orderService.updateOrderStatus(UUID.fromString(orderId), OrderStatus.PAYMENT_FAILED);
-
-        logger.log(Level.INFO, "Payment failed: {0}, orderId: {1}",
-                new Object[]{paymentIntent.getId(), orderId});
-    }
-
-    private void handleChargeFailed(StripeObject paymentIntentObject) {
-        Charge paymentCharge = getCharge(paymentIntentObject);
-        String orderId = paymentCharge.getMetadata().get("orderId");
-        orderService.updateOrderStatus(UUID.fromString(orderId), OrderStatus.PAYMENT_FAILED);
-
-        logger.log(Level.INFO, "Charge failed: {0}, orderId: {1}",
-                new Object[]{paymentCharge.getId(), orderId});
+            log.info("Charge failed: {}, orderId: {}", charge.getId(), orderId);
+            return ResponseEntity.ok("Charge failed");
+        }
+        return ResponseEntity.badRequest().body("Invalid charge object");
     }
 }

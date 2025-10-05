@@ -2,6 +2,8 @@ package com.bynature.adapters.in.web.auth;
 
 import com.bynature.adapters.in.web.auth.dto.AuthResponse;
 import com.bynature.adapters.in.web.auth.dto.LoginRequest;
+import com.bynature.domain.model.User;
+import com.bynature.domain.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,10 +27,15 @@ public class OAuth2LoginController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
+    private final UserRepository userRepository;
 
-    public OAuth2LoginController(AuthenticationManager authenticationManager, JwtEncoder jwtEncoder) {
+    public OAuth2LoginController(
+            AuthenticationManager authenticationManager,
+            JwtEncoder jwtEncoder,
+            UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtEncoder = jwtEncoder;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -45,21 +52,29 @@ public class OAuth2LoginController {
         // Get user details from authentication
         String email = authentication.getName();
 
-        // Create JWT token with claims
+        // Fetch user from repository to get all details
+        User user = userRepository.getUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+
+        // Create JWT token with complete claims
         Instant now = Instant.now();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .issuer("bynature")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.HOURS))
                 .subject(email)
-                .claim("email", email)
-                .build();
+                .claim("user_id", user.getId().toString())
+                .claim("email", user.getEmail().email())
+                .claim("role", user.getRole().toString());
 
+        // Add customer_id if user has a customer profile
+        if (user.getCustomer() != null) {
+            claimsBuilder.claim("customer_id", user.getCustomer().getId().toString());
+        }
+
+        JwtClaimsSet claims = claimsBuilder.build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-        // Extract user ID from principal if available
-        UUID userId = null; // In a real scenario, get the actual user ID
-
-        return ResponseEntity.ok(new AuthResponse(token, userId, "Login successful"));
+        return ResponseEntity.ok(new AuthResponse(token, user.getId(), "Login successful"));
     }
 }

@@ -24,15 +24,14 @@ spring:
 
 stripe:
   api:
-    publicKey: pk_test_51RaMArIWYChH7MJu7tjbLAIHh4BVlPpeUKJVjhFrAvU1mEVogrhlJIgJhxcQfnjJjVDVGJr1zZwyxxIcP1VdATbM00j99WEFAM
-    secretKey: sk_test_51RaMArIWYChH7MJuhHHhJmAzxUmggtPGeHCmvEaqaI9t6nyUJ6mkJTNIIDPLSHZxoOLJuoPvTKmNakRQ0fFE5tPu000ldPuyKv
+    publicKey: pk_test_51QRIzAIeQeVliWL7EvK7n3Lr8iNmwIcYxkOjYHZ7UWJcpYWyFjRgeZEmgtHhtk2JV6ngn6BqUvKUojco8uKJ38Rr00KFkebO76
+    secretKey: sk_test_51QRIzAIeQeVliWL7hs8NKCMtCZ6kPB97vISkKJHtlM3gfhmV6m5tkxbFgt2NPQH29068L5Bnp0R37Mj7aqOeHyfN007egZfviu
   webhook:
-    secret: whsec_459e6f1add2667dbbedfe10a3427bf02bad2e6bf4758d8527071326b321e5999
+    secret: whsec_0f4635c0939d7e60dba42fe40913f6d5f8be935f5f1c1c28eeee505215e1913b
 
 logging:
   level:
     root: INFO
-    org.springframework.security: DEBUG
 
 application:
   security:

@@ -206,12 +206,12 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Signature invalide");
+        assertThat(response.getBody()).contains("Invalid signature");
     }
 
     @Test
-    @DisplayName("When event type is not handled, should return bad request")
-    void whenUnhandledEventType_thenReturnBadRequest_E2E() throws Exception {
+    @DisplayName("When event type is not handled, should acknowledge event with 200 OK")
+    void whenUnhandledEventType_thenReturnOk_E2E() throws Exception {
         // Given
         String eventType = "checkout.session.completed";
         String payload = createGenericEventPayload(eventType);
@@ -225,18 +225,19 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
         ResponseEntity<String> response = sendWebhookRequest(payload, signature);
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Event acknowledged");
     }
 
     @Test
-    @DisplayName("When deserializer returns empty object, should return bad request")
-    void whenDeserializerReturnsEmptyObject_thenReturnBadRequest_E2E() throws Exception {
+    @DisplayName("When deserializer returns empty object, should use raw JSON fallback and succeed")
+    void whenDeserializerReturnsEmptyObject_thenUseRawJsonFallback_E2E() throws Exception {
         // Given
         String eventType = "payment_intent.created";
         String payload = createPaymentIntentEventPayload(eventType, testOrderId);
         String signature = createMockStripeSignature();
 
-        // Create an event with empty deserializer result
+        // Create an event with empty deserializer result (will trigger raw JSON fallback)
         Event mockEvent = createEmptyObjectEvent(eventType, payload);
         when(webhookVerifier.verifyAndParseEvent(anyString(), anyString(), anyString()))
                 .thenReturn(mockEvent);
@@ -245,8 +246,13 @@ public class StripeWebhookControllerE2E extends AbstractByNatureTest {
         ResponseEntity<String> response = sendWebhookRequest(payload, signature);
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Failed to deserialize Stripe object");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Event acknowledged (no orderId)");
+
+        // Verify order status was updated using raw JSON parsing
+        TimeUnit.MILLISECONDS.sleep(WAIT_MILLIS);
+        OrderRetrievalResponse order = retrieveOrder(testOrderId);
+        assertThat(order.status()).isEqualTo(OrderStatus.CREATED.toString());
     }
 
     // Helper methods

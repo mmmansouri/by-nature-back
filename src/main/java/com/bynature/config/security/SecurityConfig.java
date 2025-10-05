@@ -94,6 +94,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/client/token", "/auth/client/refresh").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/webhook/stripe").permitAll() // Stripe webhooks (no auth)
+                        // Payment endpoint requires authentication (client or user token)
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -112,7 +114,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        // Explicitly list all headers including custom 'merchant' header for payment
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "merchant"  // Custom header for payment API
+        ));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
