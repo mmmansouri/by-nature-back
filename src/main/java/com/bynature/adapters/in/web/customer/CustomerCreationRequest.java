@@ -3,15 +3,13 @@ package com.bynature.adapters.in.web.customer;
 import com.bynature.domain.model.Customer;
 import com.bynature.domain.model.Email;
 import com.bynature.domain.model.PhoneNumber;
-import com.bynature.domain.service.UserService;
+import com.bynature.domain.model.User;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.UUID;
+import jakarta.validation.constraints.Pattern;
 
 public record CustomerCreationRequest(
-        @NotNull(message = "User is required")
-        UUID userId,
 
         @NotBlank(message = "First name is required")
         String firstName,
@@ -19,11 +17,20 @@ public record CustomerCreationRequest(
         @NotBlank(message = "Last name is required")
         String lastName,
 
+        @NotBlank(message = "Password is required")
+        @Pattern(
+                regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+                message = "Password must be at least 8 characters and contain at least one digit, " +
+                        "one lowercase letter, one uppercase letter, one special character, and no whitespace"
+        )
+        String password,
+
         @NotBlank(message = "Email is required")
         String email,
 
-        @NotBlank(message = "Phone number is required")
-        String phoneNumber,
+        @NotNull(message = "Phone number is required")
+        @JsonDeserialize(using = PhoneNumberDeserializer.class)
+        PhoneNumber phoneNumber,
 
         @NotBlank(message = "Street number number is required")
         String streetNumber,
@@ -43,13 +50,13 @@ public record CustomerCreationRequest(
         @NotBlank(message = "Country is required")
         String country
 ) {
-    public Customer toDomain(UserService userService) {
+    public Customer toDomain(User user) {
         return new Customer(
-                userService.getUser(userId),
+                user,
                 firstName,
                 lastName,
                 new Email(email),
-                new PhoneNumber(phoneNumber),
+                phoneNumber,
                 streetNumber,
                 street,
                 city,

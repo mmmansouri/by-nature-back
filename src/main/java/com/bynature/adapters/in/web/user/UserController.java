@@ -36,11 +36,11 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UUID> createUser(@Valid @RequestBody UserCreationRequest userCreationRequest) {
-        UUID createdUserId = userService.createUser(userCreationRequest.toDomain());
+        User createdUser = userService.createUser(userCreationRequest.toDomain());
 
         return ResponseEntity
-                .created(URI.create("/users/" + createdUserId))
-                .body(createdUserId);
+                .created(URI.create("/users/" + createdUser.getId()))
+                .body(createdUser.getId());
     }
 
     @GetMapping("/{id}")

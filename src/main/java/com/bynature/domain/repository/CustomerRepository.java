@@ -5,7 +5,7 @@ import com.bynature.domain.model.Customer;
 import java.util.UUID;
 
 public interface CustomerRepository {
-    UUID saveCustomer(Customer customer);
+    Customer saveCustomer(Customer customer);
 
     void updateCustomer(Customer customer);
 

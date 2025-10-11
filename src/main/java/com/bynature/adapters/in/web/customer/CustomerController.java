@@ -2,6 +2,9 @@ package com.bynature.adapters.in.web.customer;
 
 import com.bynature.domain.exception.CustomerNotFoundException;
 import com.bynature.domain.model.Customer;
+import com.bynature.domain.model.Email;
+import com.bynature.domain.model.Role;
+import com.bynature.domain.model.User;
 import com.bynature.domain.service.CustomerService;
 import com.bynature.domain.service.UserService;
 import jakarta.validation.Valid;
@@ -30,11 +33,20 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<UUID> createCustomer(@Valid @RequestBody CustomerCreationRequest customerCreationRequest) {
-        UUID createdCustomerId = customerService.createCustomer(customerCreationRequest.toDomain(userService));
+
+        User createdUser = userService.createUser(new User(new Email(customerCreationRequest.email()),
+                customerCreationRequest.password()
+                , Role.CUSTOMER));
+
+        Customer createdCustomer = customerService.createCustomer(customerCreationRequest.toDomain(createdUser));
+
+        createdUser.linkToCustomer(createdCustomer);
+
+        userService.updateUser(createdUser);
 
         return ResponseEntity
-                .created(URI.create("/customers/" + createdCustomerId))
-                .body(createdCustomerId);
+                .created(URI.create("/customers/" + createdCustomer.getId()))
+                .body(createdCustomer.getId());
     }
 
     @GetMapping("/{id}")

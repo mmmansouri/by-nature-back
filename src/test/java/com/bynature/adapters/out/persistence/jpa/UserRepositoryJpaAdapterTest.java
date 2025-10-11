@@ -60,12 +60,10 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
             User user = new User(new Email("test@example.com"), TEST_PASSWORD, Role.ADMIN);
 
             // Act
-            UUID userId = userRepositoryAdapter.saveUser(user);
-            User retrievedUser = userRepositoryAdapter.getUser(userId);
+            User retrievedUser = userRepositoryAdapter.saveUser(user);
 
             // Assert
             assertThat(retrievedUser).isNotNull();
-            assertThat(retrievedUser.getId()).isEqualTo(userId);
             assertThat(retrievedUser.getEmail().email()).isEqualTo("test@example.com");
             assertThat(retrievedUser.getPassword()).isEqualTo(TEST_PASSWORD);
             assertThat(retrievedUser.getRole()).isEqualTo(Role.ADMIN);
@@ -77,8 +75,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
         void whenUpdatingUser_thenChangesArePersisted() {
             // Arrange
             User user = new User(new Email("original@example.com"), TEST_PASSWORD, Role.CUSTOMER);
-            UUID userId = userRepositoryAdapter.saveUser(user);
-            User savedUser = userRepositoryAdapter.getUser(userId);
+            User savedUser = userRepositoryAdapter.saveUser(user);
 
             // Modify the user
             savedUser.setEmail(new Email("updated@example.com"));
@@ -86,8 +83,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
             savedUser.setActive(false);
 
             // Act
-            userRepositoryAdapter.saveUser(savedUser);
-            User updatedUser = userRepositoryAdapter.getUser(userId);
+            User updatedUser =    userRepositoryAdapter.saveUser(savedUser);
 
             // Assert
             assertThat(updatedUser.getEmail().email()).isEqualTo("updated@example.com");
@@ -101,19 +97,18 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
         void whenDeletingUser_thenItCanNoLongerBeRetrieved() {
             // Arrange
             User user = new User(new Email("delete@example.com"), TEST_PASSWORD, Role.CUSTOMER);
-            UUID userId = userRepositoryAdapter.saveUser(user);
 
             // Verify user exists before deletion
-            User savedUser = userRepositoryAdapter.getUser(userId);
+            User savedUser  = userRepositoryAdapter.saveUser(user);
             assertThat(savedUser).isNotNull();
 
             // Act
-            userRepositoryAdapter.deleteUser(userId);
+            userRepositoryAdapter.deleteUser(savedUser.getId());
 
             // Assert
-            assertThatThrownBy(() -> userRepositoryAdapter.getUser(userId))
+            assertThatThrownBy(() -> userRepositoryAdapter.getUser(savedUser.getId()))
                     .isInstanceOf(UserNotFoundException.class)
-                    .hasMessageContaining("User not found with id: " + userId);
+                    .hasMessageContaining("User not found with id: " + savedUser.getId());
         }
 
         @Test
@@ -165,7 +160,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
         void whenUpdatingUserLastLogin_thenLastLoginDateIsUpdated() {
             // Arrange
             User user = new User(new Email("login@example.com"), TEST_PASSWORD, Role.CUSTOMER);
-            UUID userId = userRepositoryAdapter.saveUser(user);
+            UUID userId = userRepositoryAdapter.saveUser(user).getId();
             LocalDateTime initialLastLogin = user.getLastLoginAt();
 
             // Wait to ensure time difference
@@ -222,8 +217,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
             User user = new User(new Email("customer-user@example.com"), TEST_PASSWORD, testCustomer);
 
             // Act
-            UUID userId = userRepositoryAdapter.saveUser(user);
-            User retrievedUser = userRepositoryAdapter.getUser(userId);
+            User retrievedUser = userRepositoryAdapter.saveUser(user);
 
             // Assert
             assertThat(retrievedUser.getCustomer()).isNotNull();
@@ -258,10 +252,9 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
         void whenLinkingUserToCustomer_thenRelationshipIsUpdated() {
             // Arrange
             User user = new User(new Email("link-test@example.com"), TEST_PASSWORD, Role.CUSTOMER);
-            UUID userId = userRepositoryAdapter.saveUser(user);
 
             // Initial verification
-            User initialUser = userRepositoryAdapter.getUser(userId);
+            User initialUser = userRepositoryAdapter.saveUser(user);
             assertThat(initialUser.getCustomer()).isNull();
 
             // Act - Link to customer
@@ -269,7 +262,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
             userRepositoryAdapter.saveUser(initialUser);
 
             // Assert
-            User updatedUser = userRepositoryAdapter.getUser(userId);
+            User updatedUser = userRepositoryAdapter.getUser(initialUser.getId());
             assertThat(updatedUser.getCustomer()).isNotNull();
             assertThat(updatedUser.getCustomer().getId()).isEqualTo(testCustomer.getId());
         }
@@ -334,8 +327,7 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
         );
 
         // Act
-        UUID id = userRepositoryAdapter.saveUser(user);
-        User savedUser = userRepositoryAdapter.getUser(id);
+        User savedUser = userRepositoryAdapter.saveUser(user);
 
         // Assert
         assertThat(savedUser).isNotNull();
@@ -368,23 +360,21 @@ public class UserRepositoryJpaAdapterTest extends AbstractJpaTest {
                 new PhoneNumber("+33612345999"),
                 "45", "Rue Saint-Antoine", "Paris", "Île-de-France", "75004", "France"
         );
-        UUID customerId = customerRepositoryAdapter.saveCustomer(customer);
-        Customer savedCustomer = customerRepositoryAdapter.getCustomer(customerId);
+        Customer savedCustomer = customerRepositoryAdapter.saveCustomer(customer);
 
         User user = new User(
                 new Email("has.customer@example.com"),
                 "hashedPassword123",
                 savedCustomer
         );
-        UUID userId = userRepositoryAdapter.saveUser(user);
 
         // Get saved user and remove customer link
-        User savedUser = userRepositoryAdapter.getUser(userId);
+        User savedUser = userRepositoryAdapter.saveUser(user);
         savedUser.linkToCustomer(null);
 
         // Act
         userRepositoryAdapter.saveUser(savedUser);
-        User updatedUser = userRepositoryAdapter.getUser(userId);
+        User updatedUser = userRepositoryAdapter.getUser(savedUser.getId());
 
         // Assert
         assertThat(updatedUser.getCustomer()).isNull();

@@ -3,6 +3,7 @@ package com.bynature.application.service;
 import com.bynature.domain.model.User;
 import com.bynature.domain.repository.UserRepository;
 import com.bynature.domain.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -11,9 +12,11 @@ import java.util.UUID;
 @Service
 public class UserSpringService implements UserService {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    public UserSpringService(UserRepository userRepository) {
+    public UserSpringService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
     }
 
@@ -23,12 +26,13 @@ public class UserSpringService implements UserService {
     }
 
     @Override
-    public UUID createUser(User user) {
+    public User createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.saveUser(user);
     }
 
     @Override
-    public UUID updateUser(User user) {
+    public User updateUser(User user) {
         return userRepository.updateUser(user);
     }
 

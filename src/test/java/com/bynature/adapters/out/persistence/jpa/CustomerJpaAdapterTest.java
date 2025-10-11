@@ -53,12 +53,10 @@ public class CustomerJpaAdapterTest extends AbstractJpaTest {
                 "10", "Rue de Rivoli", "Paris", "Île-de-France", "75001", "France");
 
         // Act
-        UUID id = customerRepositoryAdapter.saveCustomer(customer);
-        Customer retrievedCustomer = customerRepositoryAdapter.getCustomer(id);
+        Customer retrievedCustomer =  customerRepositoryAdapter.saveCustomer(customer);
 
         // Assert
         assertThat(retrievedCustomer).isNotNull();
-        assertThat(retrievedCustomer.getId()).isEqualTo(id);
         assertThat(retrievedCustomer.getFirstName()).isEqualTo("John");
         assertThat(retrievedCustomer.getLastName()).isEqualTo("Doe");
         assertThat(retrievedCustomer.getEmail().email()).isEqualTo("john.doe@example.com");
@@ -78,8 +76,7 @@ public class CustomerJpaAdapterTest extends AbstractJpaTest {
         Customer customer = new Customer(testUser,"Jane", "Smith", new Email("jane.smith@example.com"),
                 new PhoneNumber("+33623456789"),
                 "20", "Avenue des Champs-Élysées", "Paris", "Île-de-France", "75008", "France");
-        UUID savedCustomerId = customerRepositoryAdapter.saveCustomer(customer);
-        Customer savedCustomer = customerRepositoryAdapter.getCustomer(savedCustomerId);
+        Customer savedCustomer = customerRepositoryAdapter.saveCustomer(customer);
 
         // Create a new customer with the same ID but updated fields
         Customer updatedCustomer = new Customer(
@@ -132,17 +129,17 @@ public class CustomerJpaAdapterTest extends AbstractJpaTest {
         Customer customer = new Customer(testUser,"Robert", "Johnson", new Email("robert@example.com"),
                 new PhoneNumber("+33634567890"),
                 "30", "Boulevard Saint-Germain", "Paris", "Île-de-France", "75005", "France");
-        UUID id = customerRepositoryAdapter.saveCustomer(customer);
 
         // Verify customer exists before deletion
-        Customer savedCustomer = customerRepositoryAdapter.getCustomer(id);
+        Customer savedCustomer = customerRepositoryAdapter.saveCustomer(customer);
+
         assertThat(savedCustomer).isNotNull();
 
         // Act
-        customerRepositoryAdapter.deleteCustomer(id);
+        customerRepositoryAdapter.deleteCustomer(savedCustomer.getId());
 
         // Assert
-        assertThatThrownBy(() -> customerRepositoryAdapter.getCustomer(id))
+        assertThatThrownBy(() -> customerRepositoryAdapter.getCustomer(savedCustomer.getId()))
                 .isInstanceOf(CustomerNotFoundException.class)
                 .hasMessageContaining("Customer not found");
     }
@@ -186,8 +183,7 @@ public class CustomerJpaAdapterTest extends AbstractJpaTest {
             customer.setCountry("France");
 
             // Act
-            UUID id = customerRepositoryAdapter.saveCustomer(customer);
-            Customer retrievedCustomer = customerRepositoryAdapter.getCustomer(id);
+            Customer retrievedCustomer =  customerRepositoryAdapter.saveCustomer(customer);;
 
             // Assert
             assertThat(retrievedCustomer.getStreetNumber()).isEqualTo("15");
@@ -210,17 +206,15 @@ public class CustomerJpaAdapterTest extends AbstractJpaTest {
             customer.setStreet("Rue de Rivoli");
             customer.setCity("Paris");
 
-            UUID id = customerRepositoryAdapter.saveCustomer(customer);
-
             // Get the saved customer and update the address
-            Customer savedCustomer = customerRepositoryAdapter.getCustomer(id);
+            Customer savedCustomer = customerRepositoryAdapter.saveCustomer(customer);
             savedCustomer.setStreetNumber("20");
             savedCustomer.setStreet("Boulevard Haussmann");
             savedCustomer.setPostalCode("75009");
 
             // Act
             customerRepositoryAdapter.updateCustomer(savedCustomer);
-            Customer updatedCustomer = customerRepositoryAdapter.getCustomer(id);
+            Customer updatedCustomer = customerRepositoryAdapter.getCustomer(savedCustomer.getId());
 
             // Assert
             assertThat(updatedCustomer.getStreetNumber()).isEqualTo("20");

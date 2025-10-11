@@ -26,11 +26,10 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
 
     @Override
     @Transactional
-    public UUID saveCustomer(Customer customer) {
-        log.debug("Saving customer with email: {}", customer.getEmail().email());
-        return customerJpaRepository
-                .save(CustomerEntity.fromDomain(customer))
-                .getId();
+    public Customer saveCustomer(Customer customer) {
+        log.info("Saving customer with email: {}", customer.getEmail().email());
+        return EntityMapper.mapCustomerToDomain(customerJpaRepository
+                .save(CustomerEntity.fromDomain(customer)));
     }
 
     @Override

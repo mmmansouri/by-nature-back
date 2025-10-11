@@ -7,9 +7,9 @@ import java.util.UUID;
 
 public interface UserService {
 
-    UUID createUser(User user);
+    User createUser(User user);
 
-    UUID updateUser(User user);
+    User updateUser(User user);
 
     void deleteUser(UUID userId);
 

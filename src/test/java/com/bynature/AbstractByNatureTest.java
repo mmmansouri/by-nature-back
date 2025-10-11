@@ -2,10 +2,8 @@ package com.bynature;
 
 import com.bynature.adapters.in.web.auth.dto.AuthResponse;
 import com.bynature.adapters.in.web.auth.dto.LoginRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -56,6 +54,7 @@ public abstract class AbstractByNatureTest {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 

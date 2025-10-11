@@ -24,7 +24,7 @@ public class CustomerSpringService implements CustomerService {
         customerRepository.updateCustomer(customer);
     }
 
-    public UUID createCustomer(Customer customer) {
+    public Customer createCustomer(Customer customer) {
         return customerRepository.saveCustomer(customer);
     }
 

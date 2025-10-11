@@ -32,7 +32,7 @@ public class UserRepositoryAdapter implements UserRepository {
 
     @Override
     @Transactional
-    public UUID saveUser(User user) {
+    public User saveUser(User user) {
         log.debug("Saving user with email: {}", user.getEmail().email());
 
         UserEntity userEntity = UserEntity.fromDomain(user);
@@ -48,14 +48,13 @@ public class UserRepositoryAdapter implements UserRepository {
 
         log.info("User created/updated with ID: {}", user.getId());
 
-        return userJpaRepository
-                .save(userEntity)
-                .getId();
+        return EntityMapper.mapUserToDomain(userJpaRepository
+                .save(userEntity));
     }
 
     @Transactional
     @Override
-    public UUID updateUser(User user) {
+    public User updateUser(User user) {
         log.debug("Updating user with ID: {}", user.getId());
 
         // Verify user exists before updating

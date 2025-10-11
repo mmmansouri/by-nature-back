@@ -6,10 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository {
-    UUID saveUser(User user);
+    User saveUser(User user);
 
-    
-    UUID updateUser(User user);
+
+    User updateUser(User user);
 
     User getUser(UUID userId);
 
