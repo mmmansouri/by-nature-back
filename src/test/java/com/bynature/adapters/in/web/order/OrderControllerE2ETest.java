@@ -105,6 +105,9 @@ public class OrderControllerE2ETest extends AbstractByNatureTest {
         assertThat(orderRetrievalResponse.shippingAddress().street()).isEqualTo(addressRequest.street());
         assertThat(orderRetrievalResponse.shippingAddress().streetNumber()).isEqualTo(addressRequest.streetNumber());
         assertThat(orderRetrievalResponse.shippingAddress().region()).isEqualTo(addressRequest.region());
+        assertThat(orderRetrievalResponse.createdAt()).isNotNull();
+        assertThat(orderRetrievalResponse.updatedAt()).isNotNull();
+        assertThat(orderRetrievalResponse.updatedAt()).isAfterOrEqualTo(orderRetrievalResponse.createdAt());
     }
 
     @Test
