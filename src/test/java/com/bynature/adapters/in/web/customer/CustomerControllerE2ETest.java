@@ -393,4 +393,319 @@ public class CustomerControllerE2ETest extends AbstractByNatureTest {
         assertThat(hasExpectedViolation).isTrue();
     }
 
+    @Test
+    @DisplayName("Should successfully update an existing customer")
+    void whenUpdateValidCustomer_shouldReturnOk_E2E() {
+        // Create update request JSON
+        String updateRequestJson = """
+        {
+            "firstName": "UpdatedJohn",
+            "lastName": "UpdatedDoe",
+            "phoneNumber": "+33612345699",
+            "streetNumber": "99",
+            "street": "Updated Street",
+            "city": "Lyon",
+            "region": "Updated Region",
+            "postalCode": "69000",
+            "country": "France"
+        }
+        """;
+
+        // Update the customer
+        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.PUT,
+                createAuthenticatedEntity(updateRequestJson),
+                CustomerRetrievalResponse.class,
+                CUSTOMER_ID
+        );
+
+        // Verify response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        CustomerRetrievalResponse updatedCustomer = response.getBody();
+        assertThat(updatedCustomer.id()).isEqualTo(CUSTOMER_ID);
+        assertThat(updatedCustomer.firstName()).isEqualTo("UpdatedJohn");
+        assertThat(updatedCustomer.lastName()).isEqualTo("UpdatedDoe");
+        assertThat(updatedCustomer.phoneNumber()).isEqualTo("+33612345699");
+        assertThat(updatedCustomer.streetNumber()).isEqualTo("99");
+        assertThat(updatedCustomer.street()).isEqualTo("Updated Street");
+        assertThat(updatedCustomer.city()).isEqualTo("Lyon");
+        assertThat(updatedCustomer.region()).isEqualTo("Updated Region");
+        assertThat(updatedCustomer.postalCode()).isEqualTo("69000");
+        assertThat(updatedCustomer.country()).isEqualTo("France");
+
+        // Verify the update persisted by retrieving the customer again
+        ResponseEntity<CustomerRetrievalResponse> getResponse = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                CustomerRetrievalResponse.class,
+                CUSTOMER_ID
+        );
+
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        CustomerRetrievalResponse retrievedCustomer = getResponse.getBody();
+        assertThat(retrievedCustomer).isNotNull();
+        assertThat(retrievedCustomer.firstName()).isEqualTo("UpdatedJohn");
+        assertThat(retrievedCustomer.lastName()).isEqualTo("UpdatedDoe");
+    }
+
+    @Test
+    @DisplayName("Should return 404 when updating non-existing customer")
+    void whenUpdateNonExistingCustomer_shouldReturn404_E2E() {
+        String updateRequestJson = """
+        {
+            "firstName": "Test",
+            "lastName": "User",
+            "phoneNumber": "+33612345678",
+            "streetNumber": "1",
+            "street": "Test Street",
+            "city": "Paris",
+            "region": "Île-de-France",
+            "postalCode": "75001",
+            "country": "France"
+        }
+        """;
+
+        // Try to update a non-existing customer
+        ResponseEntity<CustomerRetrievalResponse> response = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.PUT,
+                createAuthenticatedEntity(updateRequestJson),
+                CustomerRetrievalResponse.class,
+                UUID.randomUUID()
+        );
+
+        // Verify 404 response
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    private static Stream<Arguments> invalidUpdateRequests() {
+        return Stream.of(
+                // Empty first name
+                Arguments.of(
+                        "Empty first name",
+                        """
+                        {
+                            "firstName": "",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty last name
+                Arguments.of(
+                        "Empty last name",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty phone number
+                Arguments.of(
+                        "Empty phone number",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty street number
+                Arguments.of(
+                        "Empty street number",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty street
+                Arguments.of(
+                        "Empty street",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty city
+                Arguments.of(
+                        "Empty city",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty region
+                Arguments.of(
+                        "Empty region",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "",
+                            "postalCode": "75001",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty postal code
+                Arguments.of(
+                        "Empty postal code",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "",
+                            "country": "France"
+                        }
+                        """
+                ),
+                // Empty country
+                Arguments.of(
+                        "Empty country",
+                        """
+                        {
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "phoneNumber": "+33612345678",
+                            "streetNumber": "42",
+                            "street": "Main Street",
+                            "city": "Paris",
+                            "region": "Île-de-France",
+                            "postalCode": "75001",
+                            "country": ""
+                        }
+                        """
+                )
+        );
+    }
+
+    @ParameterizedTest(name = "Invalid update request validation: {0}")
+    @MethodSource("invalidUpdateRequests")
+    @DisplayName("Should validate CustomerUpdateRequest fields and return 400")
+    void whenUpdateInvalidCustomer_thenReturnBadRequest_E2E(String testName, String invalidRequestJson) {
+        // Try to update with invalid data
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.PUT,
+                createAuthenticatedEntity(invalidRequestJson),
+                ProblemDetail.class,
+                CUSTOMER_ID
+        );
+
+        // Verify HTTP 400 Bad Request status
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should only update allowed fields and preserve email")
+    void whenUpdateCustomer_shouldPreserveEmail_E2E() {
+        // Get original customer to check email
+        ResponseEntity<CustomerRetrievalResponse> originalResponse = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.GET,
+                createAuthenticatedEntity(),
+                CustomerRetrievalResponse.class,
+                CUSTOMER_ID
+        );
+
+        assertThat(originalResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String originalEmail = originalResponse.getBody().email();
+
+        // Update customer
+        String updateRequestJson = """
+        {
+            "firstName": "NewFirstName",
+            "lastName": "NewLastName",
+            "phoneNumber": "+33612345688",
+            "streetNumber": "50",
+            "street": "New Street",
+            "city": "Marseille",
+            "region": "Provence-Alpes-Côte d'Azur",
+            "postalCode": "13001",
+            "country": "France"
+        }
+        """;
+
+        ResponseEntity<CustomerRetrievalResponse> updateResponse = restTemplate.exchange(
+                "/customers/{id}",
+                HttpMethod.PUT,
+                createAuthenticatedEntity(updateRequestJson),
+                CustomerRetrievalResponse.class,
+                CUSTOMER_ID
+        );
+
+        // Verify email is preserved (not updated)
+        assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(updateResponse.getBody()).isNotNull();
+        assertThat(updateResponse.getBody().email()).isEqualTo(originalEmail);
+
+        // Verify other fields were updated
+        assertThat(updateResponse.getBody().firstName()).isEqualTo("NewFirstName");
+        assertThat(updateResponse.getBody().lastName()).isEqualTo("NewLastName");
+        assertThat(updateResponse.getBody().phoneNumber()).isEqualTo("+33612345688");
+    }
+
 }
+

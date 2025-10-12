@@ -10,10 +10,10 @@ import java.util.UUID;
 public class Customer {
     private final UUID id;
     private User user;
-    private final String firstName;
-    private final String lastName;
-    private final Email email;
-    private final PhoneNumber phoneNumber;
+    private String firstName;
+    private String lastName;
+    private Email email;
+    private PhoneNumber phoneNumber;
     private String streetNumber;
 
     private String street;
@@ -117,6 +117,22 @@ public class Customer {
     public void setUser(User user) {
         this.user = user;
         this.validate();
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setPhoneNumber(PhoneNumber phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setEmail(Email email) {
+        this.email = email;
     }
 
     public String getFirstName() {

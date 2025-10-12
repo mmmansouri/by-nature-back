@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,6 +54,23 @@ public class CustomerController {
     public ResponseEntity<CustomerRetrievalResponse> getCustomer(@PathVariable("id") UUID uuid) {
         try {
             Customer customer = customerService.getCustomer(uuid);
+            return ResponseEntity.ok(CustomerRetrievalResponse.fromDomain(customer));
+        } catch (CustomerNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerRetrievalResponse> updateCustomer(
+            @PathVariable("id") UUID uuid,
+            @Valid @RequestBody CustomerUpdateRequest updateRequest) {
+        try {
+            Customer customer = customerService.getCustomer(uuid);
+
+            updateRequest.toDomain(customer);
+
+            customerService.updateCustomer(customer);
+
             return ResponseEntity.ok(CustomerRetrievalResponse.fromDomain(customer));
         } catch (CustomerNotFoundException e) {
             return ResponseEntity.notFound().build();
